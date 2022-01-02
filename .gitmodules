@@ -1,0 +1,3 @@
+[submodule "qml"]
+	path = qml
+	url = https://SeidC@bitbucket.org/SeidC/plotterui.git
