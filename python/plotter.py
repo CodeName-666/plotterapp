@@ -16,6 +16,8 @@ class Plotter(QObject):
         
         self._app = QApplication(args)
         self._engine = QQmlApplicationEngine()
+
+        self._engine.setPluginPathList(["../qml/", "../qml/imports", "../qml/asset_imports","../qml/content"])
          # Expose the Python object to QML
         self._context = self._engine.rootContext()
         # Get the path of the current directory, and then add the name
