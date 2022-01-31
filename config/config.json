@@ -1,7 +1,13 @@
 {
+
+  "imports": [
+    "../qml", 
+    "../qml/imports", 
+    "../qml/content"
+  ],
   "interfaces": [
     {
-      "type": "SERIAL",
+      "type": "Serial",
       "default": {
         "port": "COM1",
         "baud": 9600,
@@ -11,96 +17,39 @@
       }
     },
     {
-      "type": "TELNET",
+      "type": "Telnet",
       "default": {
         "host": "",
         "port": 0
+      }
+    },
+    {
+      "type": "Test",
+      "default" : {
+        "name": "none",
+        "color": 0,
+        "type": "SINUS"
+
       }
     }
   ],
   "qml": {
     "serial" : {
-      "port": [
-        {
-          "name": "COM0"
-        },
-        {
-          "name": "COM1"
-        },
-        {
-          "name": "COM2"
-        },
-        {
-          "name": "COM3"
-        },
-        {
-          "name": "COM4"
-        },
-        {
-          "name": "COM5"
-        },
-        {
-          "name": "COM6"
-        },
-        {
-          "name": "COM7"
-        },
-        {
-          "name": "COM8"
-        },
-        {
-          "name": "COM9"
-        },
-        {
-          "name": "COM10"
-        }
+       "dataBits" : [
+        {"name": "5Bit", "value": 5},
+        {"name": "6Bit", "value": 6},
+        {"name": "7Bit", "value": 7},
+        {"name": "8Bit", "value": 8}
       ],
-
-      "data" : [
-        {
-          "name": "5Bit",
-          "value": 5
-        },
-        {
-          "name": "6Bit",
-          "value": 6
-        },
-        {
-          "name": "7Bit",
-          "value": 7
-        },
-        {
-          "name": "8Bit",
-          "value": 8
-        }
+      "stopBits": [
+        {"name": "1Bit",  "value": 1},
+        {"name": "1.5Bit","value": 1.5},
+        {"name": "2Bit",  "value": 2}
       ],
-      "stop": [
-        {
-          "name": "1Bit",
-          "value": 1
-        },
-        {
-          "name": "1.5Bit",
-          "value": 1.5
-        },
-        {
-          "name": "2Bit",
-          "value": 2
-        }
-      ],
-      "parity" : [
-        {
-          "name": "None",
-          "value": "None"
-        },
-        {
-          "name": "EVEN",
-          "value": "EVEN"
-        },
-        {
-          "name": "ODD",
-          "value": "ODD"
-        }
+      "parityBits" : [
+        {"name": "None","value": "None"},
+        {"name": "EVEN","value": "EVEN"},
+        {"name": "ODD","value": "ODD"}
       ]
     }
   }

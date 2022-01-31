@@ -11,23 +11,14 @@ from PySide2.QtCore import QObject, Slot, Signal
 
 class Plotter(QObject):
 
-    def __init__(self, args) -> None:
+    def __init__(self, args, config: typing.Dict) -> None:
         super().__init__()
         
         self._app = QApplication(args)
         self._engine = QQmlApplicationEngine()
 
-        pathlst = self._engine.pluginPathList()
-        importlst = self._engine.importPathList()
-       
-        for path in ["../qml", "../qml/imports", "../qml/content"]:
-            pathlst.append(join(dirname(__file__),path))
-            importlst.append(join(dirname(__file__),path))
-
-       # self._engine.setPluginPathList(pathlst)
-        self._engine.setImportPathList(importlst)
-
-         # Expose the Python object to QML
+        self.setImportPaths(config["imports"])
+        # Expose the Python object to QML
         self._context = self._engine.rootContext()
         # Get the path of the current directory, and then add the name
         # of the QML file, to load it.
@@ -49,9 +40,15 @@ class Plotter(QObject):
     def rootObjects(self) -> typing.List:
         return self._engine.rootObjects() 
 
+    def setImportPaths(self, path_lst: typing.List):
+        importlst = self._engine.importPathList()
+        for path in path_lst:
+            importlst.append(join(dirname(__file__),path))
+
+        # self._engine.setPluginPathList(pathlst)
+        self._engine.setImportPathList(importlst)
 
     def connectPy2QMLSignalsSlot(self, serial_config):
-    
         root_object = self._engine.rootObjects()[0]
     
         if root_object:

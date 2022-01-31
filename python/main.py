@@ -41,19 +41,17 @@ def getInterface(json_config: dict, type: str):
         return None
 
 def getSerialConfig(json_config: dict):
-    return getInterface(json_config,"SERIAL")
+    return getInterface(json_config,"Serial")
         
 
 def getTelnetConfig(json_config: dict):
-    return getInterface(json_config,"TELNET")
+    return getInterface(json_config,"Telnet")
 
 
 
 if __name__ == "__main__":
 
     # QQmlDebuggingEnabler()
-    plotter = Plotter(sys.argv)
-    backend = Backend()
     json_config = getJsonConfigData('../config/config.json')
     serial_config = getSerialConfig(json_config)
     telnet_config = getTelnetConfig(json_config)
@@ -61,7 +59,9 @@ if __name__ == "__main__":
     # Instance of the Python object
     serial = SerialConnection(serial_config["default"])
     telnet = TelnetConnection(telnet_config["default"])
-       
+
+    plotter = Plotter(sys.argv,json_config)
+    backend = Backend()       
 
     backend.add_receiver(telnet_config["type"], telnet)
     backend.add_receiver(serial_config["type"], serial)
