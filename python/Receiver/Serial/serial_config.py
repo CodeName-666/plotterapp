@@ -29,80 +29,42 @@ SerialParity = {
 def DictValue2Key(dictionary: dict, value):
     return list(dictionary.keys())[list(dictionary.values()).index(value)]
 
-def get_serial_ports():
-    ports = serial.tools.list_ports.comports()
-    return [port.name for port in ports]
     
 class SerialConfig(QObject):
-    _com_updater_signal = Signal()
 
     def __init__(self, default_config: dict):
         super(SerialConfig, self).__init__()
 
-        self._port = ""
-        self._baud = 0
-        self._size = 0
-        self._parity = 0
-        self._stopbits = 0
+        self._port: str = ""
+        self._baud: int = 0
+        self._size: int = 0
+        self._parity: float = 0
+        self._stopbits: str = 0
 
         self._com_available_list = []
         self._com_updater_timer = QTimer()
         self.__init_update_timer()
 
         self.com_list = []
-        self.config = default_config
-
-    def __init_update_timer(self):
-        self._com_updater_timer.timeout.connect(self.com_updater_cbk)
-        self._com_updater_timer.start(1000)
+        self.setup = default_config
 
     def load(self):
         self._com_list = self.create_com_list()
 
+ 
     @property
-    def com_list(self):
-        return self._com_list
-
-    @com_list.setter
-    def com_list(self, com_list):
-        self._com_list = com_list
-
-    def com_updater_cbk(self):
-        print("CaLLBack Call")
-        new_com_list = get_serial_ports()
-        if new_com_list != self._com_available_list:
-            print("Emit signal")
-            self._com_list = get_serial_ports()
-            self._com_updater_signal.emit()
-            self._com_available_list = new_com_list
-
-    #def create_com_list():
-    #    com_port_list = []
-    #    available_com_ports = SerialConfig.serial_ports()
-    #    for k in available_com_ports:
-    #        print("New Port {}".format(k))
-#
-    #    for i in range(1, 10):
-    #        port = 'COM{}'.format(i)
-    #        if port in available_com_ports:
-    #            port = port + ': [x]'
-#
-    #        com_port_list.append(port)
-    #    return com_port_list
-
-    @property
-    def config(self) -> dict:
-        config = {
+    def setup(self) -> dict:
+        return {
             "port"     : self._port,
             "baud"     : self._baud,
             "size"     : DictValue2Key(SerialSize,self._size),
             "parity"   : DictValue2Key(SerialParity, self._parity),
             "stop_bits": DictValue2Key(SerialStopBits, self._stopbits)
         }
-        return config
+        
 
-    @config.setter
-    def config(self, config: dict):
+    @setup.setter
+    def setup(self, config: dict):
         self._port = config["port"]
         self._baud = config["baud"]
         self._size = SerialSize[config["size"]]

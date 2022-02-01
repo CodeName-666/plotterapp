@@ -8,11 +8,10 @@ from os.path import abspath, dirname, join
 from PySide2.QtQml import QQmlDebuggingEnabler
 from PySide2.QtCore import QObject, Slot
 
-from plotter import Plotter
-
-from backend import Backend
-from serial_connection import SerialConnection, SerialConfig
-from telnet_connection import TelnetConnection
+from Plotter.plotter import Plotter
+from Backend.backend import Backend
+from Receiver.Serial.serial_connection import SerialConnection
+from Receiver.Telnet.telnet_connection import TelnetConnection
 
 
 
@@ -55,10 +54,7 @@ if __name__ == "__main__":
     json_config = getJsonConfigData('../config/config.json')
     serial_config = getSerialConfig(json_config)
     telnet_config = getTelnetConfig(json_config)
-
-    # Instance of the Python object
-    serial = SerialConnection(serial_config["default"])
-    telnet = TelnetConnection(telnet_config["default"])
+ 
 
     plotter = Plotter(sys.argv,json_config)
     backend = Backend()       
