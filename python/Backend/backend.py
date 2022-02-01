@@ -1,10 +1,11 @@
 # This Python file uses the following encoding: utf-8
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 from PySide2.QtQml import QJSValue
-from receiver import Receiver, ConnectionType
+from Receiver.receiver import Receiver, ConnectionType
+from settings import Settings
 
 
-class Backend(QObject):
+class Backend(Settings):
 
     def __init__(self):
         super(Backend, self).__init__()
