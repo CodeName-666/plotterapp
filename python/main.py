@@ -52,15 +52,9 @@ if __name__ == "__main__":
 
     # QQmlDebuggingEnabler()
     json_config = getJsonConfigData('../config/config.json')
-    serial_config = getSerialConfig(json_config)
-    telnet_config = getTelnetConfig(json_config)
  
-
     plotter = Plotter(sys.argv,json_config)
     backend = Backend()       
-
-    backend.add_receiver(telnet_config["type"], telnet)
-    backend.add_receiver(serial_config["type"], serial)
 
     plotter.set_backend(backend)
     plotter.setup_app()

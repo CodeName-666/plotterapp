@@ -1,13 +1,13 @@
 import typing
-import serial.tools.list_ports
-
+import serial
+from serial.tools import list_ports
+from PySide2.QtWidgets import QApplication, QWidget
 from PySide2.QtQml import QJSValue
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 
 
-
 def get_serial_ports(): 
-    ports = serial.tools.list_ports.comports()
+    ports = list_ports.comports()
     return [port.name for port in ports]
 
 class SerialPort(QObject):
@@ -17,6 +17,7 @@ class SerialPort(QObject):
         super(SerialPort,self).__init__(parent)
         self._com_updater_timer = QTimer()
         self.com_ports = []
+        self._serial = serial.Serial()
 
         self.__init_update_timer()
     
@@ -37,10 +38,8 @@ class SerialPort(QObject):
         self._com_list = com_list
 
     def com_updater_cbk(self):
-        print("CaLLBack Call")
         new_com_list = get_serial_ports()
         if new_com_list != self.com_ports:
-            print("Emit signal")
             self._com_updater_signal.emit(new_com_list)
             self.com_ports = new_com_list
 
@@ -72,7 +71,11 @@ if __name__ == "__main__":
     def rxPortList(portList):
         print(portList)
 
+    app = QApplication([]) # Start an application.
+    window = QWidget() # Create a window.
 
     serial = SerialPort(None)
-
     serial._com_updater_signal.connect(rxPortList)
+    window.show() # Show window
+    app.exec_() # Execute the App
+   
