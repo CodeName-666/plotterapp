@@ -52,5 +52,10 @@
         {"name": "ODD","value": "ODD"}
       ]
     }
+  },
+  "logging" : {
+    "enabled": 1,
+    "name" : "logfile.log",
+    "level": "DEBUG"
   }
 }

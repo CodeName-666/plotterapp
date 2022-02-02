@@ -10,6 +10,7 @@ def get_serial_ports():
     ports = list_ports.comports()
     return [port.name for port in ports]
 
+
 class SerialPort(QObject):
     _com_updater_signal = Signal(dict)
 
@@ -42,11 +43,7 @@ class SerialPort(QObject):
         if new_com_list != self.com_ports:
             self._com_updater_signal.emit(new_com_list)
             self.com_ports = new_com_list
-
-        @Slot(result=list)
-        def get_com_ports(self) -> list:
-            return self.receiver_list["SERIAL"].settings.com_list
-    
+   
     # Obsolete Method
     #def create_com_list():
     #    com_port_list = []

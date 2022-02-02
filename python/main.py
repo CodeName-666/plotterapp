@@ -3,6 +3,7 @@ import sys
 import os
 import sys
 import json
+import logging
 from os.path import abspath, dirname, join
 
 from PySide2.QtQml import QQmlDebuggingEnabler
@@ -14,11 +15,9 @@ from Receiver.Serial.serial_connection import SerialConnection
 from Receiver.Telnet.telnet_connection import TelnetConnection
 
 
-
-
 # from style_rc import *
 
-def getJsonConfigData(json_path : str):
+def getJsonConfigData(json_path: str):
     file_path = os.path.dirname(__file__)
     if file_path:
         config = file_path + '/' + json_path
@@ -31,6 +30,7 @@ def getJsonConfigData(json_path : str):
     except FileNotFoundError:
         return None
 
+
 def getInterface(json_config: dict, type: str):
     if json_config:
         interface_list = json_config["interfaces"]
@@ -39,26 +39,25 @@ def getInterface(json_config: dict, type: str):
                 return interface
         return None
 
+
 def getSerialConfig(json_config: dict):
-    return getInterface(json_config,"Serial")
-        
+    return getInterface(json_config, "Serial")
+
 
 def getTelnetConfig(json_config: dict):
-    return getInterface(json_config,"Telnet")
-
+    return getInterface(json_config, "Telnet")
 
 
 if __name__ == "__main__":
 
     # QQmlDebuggingEnabler()
     json_config = getJsonConfigData('../config/config.json')
- 
-    plotter = Plotter(sys.argv,json_config)
-    backend = Backend()       
+
+    plotter = Plotter(sys.argv, json_config)
+    backend = Backend()
 
     plotter.set_backend(backend)
     plotter.setup_app()
-    
 
     if not plotter.rootObjects():
         sys.exit(-1)

@@ -3,14 +3,19 @@ from PySide2.QtCore import QObject, Slot, Signal, QTimer
 from PySide2.QtQml import QJSValue
 from Receiver.receiver import Receiver, ConnectionType
 from python.Receiver import receiver
+
+# Backend interfaces
 from settings import Settings
+from serial_port import SerialPort
+from ui_setup import UiSetup
 
 
-class Backend(Settings):
+class Backend(Settings, SerialPort, UiSetup):
 
     def __init__(self):
         super(Settings, self).__init__()
-
+        super(SerialPort, self).__init__()
+        super(UiSetup, self).__init__()
 
     @property
     def receiver(self):
@@ -18,11 +23,10 @@ class Backend(Settings):
             return self._receiver
         except:
             return None
-    
+
     @receiver.setter
     def receiver(self, receiver: Receiver) -> int:
         self._receiver = receiver
-
 
     @Slot('str', result='bool')
     def connect(self, connection_type: str) -> bool:
