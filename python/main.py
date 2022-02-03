@@ -11,6 +11,7 @@ from PySide2.QtCore import QObject, Slot
 
 from Plotter.plotter import Plotter
 from Backend.backend import Backend
+from Logger.logger import Logger
 from Receiver.Serial.serial_connection import SerialConnection
 from Receiver.Telnet.telnet_connection import TelnetConnection
 
@@ -53,8 +54,10 @@ if __name__ == "__main__":
     # QQmlDebuggingEnabler()
     json_config = getJsonConfigData('../config/config.json')
 
+    Logger.get_instance().setup(json_config)
     plotter = Plotter(sys.argv, json_config)
     backend = Backend()
+    backend.setup(json_config)
 
     plotter.set_backend(backend)
     plotter.setup_app()

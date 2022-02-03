@@ -1,10 +1,13 @@
 
+import imp
 import typing
 from os.path import abspath, dirname, join
 from Backend.backend import Backend
+from Logger import logger
 from PySide2.QtWidgets import QApplication
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtCore import QObject, Slot, Signal
+
 
 
 
@@ -25,10 +28,13 @@ class  Plotter(QObject):
         
         self._backend = None
         self._plot_list = []
-
+    
     def set_backend(self, backend: Backend):        
         self._backend = backend
         self._context.setContextProperty("Backend", backend)
+
+    def setup(self, config: dict):
+        pass
 
     def setup_app(self):
         self._engine.load(abspath(self._qmlFile))
@@ -52,7 +58,11 @@ class  Plotter(QObject):
             connected = serial_config._com_updater_signal.connect(root_object.updateComPorts)
             if connected:
                 print("Signal Connected")
+
             else:
                 print("Not Connected")
         else:
             print("Object not found")
+    
+    def setup_backend(self, config: dict):
+        pass
