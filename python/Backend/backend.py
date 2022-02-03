@@ -8,9 +8,10 @@ from python.Receiver import receiver
 from settings import Settings
 from serial_port import SerialPort
 from ui_setup import UiSetup
+from Logger import logger
+from Logger.logger import Logger
 
-
-class Backend(Settings, SerialPort, UiSetup):
+class Backend(Settings, SerialPort, UiSetup, Logger):
 
     def __init__(self):
         super(Settings, self).__init__()
@@ -36,16 +37,16 @@ class Backend(Settings, SerialPort, UiSetup):
                     if self.receiver_list[connection_type].open_connection():
                         return True
                     else:
-                        print("Cannot open connection, undef error")
+                        logger.error("Cannot open connection, undef error")
                         return False
                 else:
-                    print("Allready Connected")
+                    logger.info("Allready Connected")
                     return False
             else:
-                print("Invalid settings")
+                logger.warning("Invalid settings")
                 return False
         else:
-            print("Invalid Connection type")
+            logger.error("Invalid Connection type")
             return False
 
     @Slot('str', result='bool')

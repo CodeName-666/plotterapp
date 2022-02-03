@@ -1,10 +1,11 @@
+from distutils.log import Log
 import typing
 import serial
 from serial.tools import list_ports
 from PySide2.QtWidgets import QApplication, QWidget
 from PySide2.QtQml import QJSValue
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
-
+from Logger import logger
 
 def get_serial_ports(): 
     ports = list_ports.comports()
@@ -41,6 +42,7 @@ class SerialPort(QObject):
     def com_updater_cbk(self):
         new_com_list = get_serial_ports()
         if new_com_list != self.com_ports:
+            logger.info("New Comports found {}".format(new_com_list))
             self._com_updater_signal.emit(new_com_list)
             self.com_ports = new_com_list
    
