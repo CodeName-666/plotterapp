@@ -1,7 +1,5 @@
-from typing import List
-import serial
+
 import serial.tools.list_ports
-from receiver import Receiver, ConnectionType
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 
 

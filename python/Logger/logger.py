@@ -19,6 +19,7 @@ def debug(msg, *args, **kwargs):
 
 
 class Logger(QObject):
+    
     __instance = None
     def __init__(self) -> None:
         if Logger.__instance != None:

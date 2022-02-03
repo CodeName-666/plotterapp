@@ -1,15 +1,17 @@
 # This Python file uses the following encoding: utf-8
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 from PySide2.QtQml import QJSValue
-from Receiver.receiver import Receiver, ConnectionType
-from python.Receiver import receiver
+from python.Receiver.receiver import Receiver
+
 
 # Backend interfaces
-from settings import Settings
-from serial_port import SerialPort
-from ui_setup import UiSetup
-from Logger import logger
-from Logger.logger import Logger
+from .settings import Settings
+from .serial_port import SerialPort
+from .ui_setup import UiSetup
+from python.Logger import logger
+from python.Logger.logger import Logger
+
+
 
 class Backend(Settings, SerialPort, UiSetup, Logger):
 
@@ -17,6 +19,7 @@ class Backend(Settings, SerialPort, UiSetup, Logger):
         super(Settings, self).__init__()
         super(SerialPort, self).__init__()
         super(UiSetup, self).__init__()
+        super(Logger, self).__init__()
 
     @property
     def receiver(self):

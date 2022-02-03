@@ -6,8 +6,8 @@ import typing
 
 class UiSetup(QObject):
 
-    def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
-        super().__init__(parent)
+    def __init__(self, parent: typing.Optional[QObject] = None) -> None:
+        super(UiSetup, self).__init__()
         self.setup_done_status = False
 
     @property
