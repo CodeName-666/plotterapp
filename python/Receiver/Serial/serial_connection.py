@@ -6,8 +6,8 @@ import logging
 from typing import List
 import serial
 import serial.tools.list_ports
-from python.Receiver.receiver import Receiver, ConnectionType
-from python.Receiver.Serial.serial_config import SerialConfig
+from Receiver.receiver import Receiver, ConnectionType
+from Receiver.Serial.serial_config import SerialConfig
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 
 

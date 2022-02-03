@@ -1,15 +1,15 @@
 # This Python file uses the following encoding: utf-8
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 from PySide2.QtQml import QJSValue
-from python.Receiver.receiver import Receiver
+from Receiver.receiver import Receiver
 
 
 # Backend interfaces
 from .settings import Settings
 from .serial_port import SerialPort
 from .ui_setup import UiSetup
-from python.Logger import logger
-from python.Logger.logger import Logger
+from Logger import logger
+from Logger.logger import Logger
 
 
 

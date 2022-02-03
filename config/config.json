@@ -1,9 +1,9 @@
 {
 
   "imports": [
-    "../qml", 
-    "../qml/imports", 
-    "../qml/content"
+    "../../qml", 
+    "../../qml/imports", 
+    "../../qml/content"
   ],
   "interfaces": [
     {

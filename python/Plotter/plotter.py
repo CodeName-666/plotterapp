@@ -1,7 +1,7 @@
 
 import typing
 from os.path import abspath, dirname, join
-from python.Backend.backend import Backend
+from Backend.backend import Backend
 from PySide2.QtWidgets import QApplication
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtCore import QObject, Slot, Signal
