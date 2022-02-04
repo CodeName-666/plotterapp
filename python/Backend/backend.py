@@ -5,7 +5,7 @@ from Receiver.receiver import Receiver
 
 
 # Backend interfaces
-#from .settings import Settings
+from .settings import Settings
 from .serial_port import SerialPort
 from .ui_setup import UiSetup
 from Logger import logger

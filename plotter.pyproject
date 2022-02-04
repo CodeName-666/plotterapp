@@ -13,7 +13,6 @@
               "qml/content/Models/DataSizeModel.qml",
               "qml/content/Models/ParityBitsModel.qml",
               "qml/content/Models/StopBitsModel.qml",
-              "qml/content/Models/qmldir"
               "qml/content/MainMenu/MainMenuUi.ui.qml",
               "qml/content/MainMenu/MainMenu.qml",
               "qml/content/Footer/FooterUi.ui.qml",
@@ -29,7 +28,6 @@
               "qml/imports/PlotterUi/DirectoryFontLoader.qml",
               "qml/imports/PlotterUi/Random.js",
               "qml/imports/PlotterUi/Setup.js",
-              "qml/imports/PlotterUi/qmldir",
               "python/main.py",
               "python/Backend/backend.py",
               "python/Backend/serial_port.py",
