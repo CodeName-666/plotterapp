@@ -31,7 +31,7 @@ class Logger(QObject):
     @staticmethod
     def get_instance():
         if Logger.__instance == None:
-            Logger(None,None)
+            Logger()
         return Logger.__instance
 
     @property
@@ -59,9 +59,10 @@ class Logger(QObject):
         self._enabled = status   
 
     def setup(self, config: dict) -> None:
-        self.enabled = config["enabled"]
-        log_level = config["level"]
-        name = config["name"]
+        log_config = config["logging"]
+        self.enabled = log_config["enabled"]
+        log_level = log_config["level"]
+        name = log_config["name"]
         if self.enabled:
             logging.basicConfig(filename=name, encoding='utf-8',
                         format='%(asctime)s: %(levelname)s - %(message)s', level=log_level)
