@@ -57,3 +57,7 @@ class Backend(Settings, SerialPort, UiSetup, Logger):
             return self.receiver_list[connection_type].settings_valid()
         else:
             return False
+
+    @Slot(bool)
+    def test_fnc(self, status: bool):
+        print("BACKEND: status = {}".format(status))

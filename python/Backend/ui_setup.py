@@ -2,6 +2,7 @@
 # This Python file uses the following encoding: utf-8
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 import typing
+from Logger import logger
 
 
 class UiSetup(QObject):
@@ -21,5 +22,8 @@ class UiSetup(QObject):
     def setup_done_status(self, status): 
         self._setup_done_status = status
 
-    def setup_done(self):
-        self.setup_done_status = True
+    @Slot(bool)
+    def setup_done(self, status: bool):
+        self.setup_done_status = status
+        logger.info("Backend setup done")
+

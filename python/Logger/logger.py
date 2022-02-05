@@ -25,7 +25,7 @@ class Logger(QObject):
         if Logger.__instance != None:
             pass
         else:
-            super(QObject,self).__init__()
+            super(Logger,self).__init__()
             Logger.__instance = self
 
     @staticmethod
@@ -40,7 +40,7 @@ class Logger(QObject):
             return self._enabled
         except: 
             return False
-            
+
     @enabled.setter
     def enabled(self, status):
         self._enabled = status
@@ -59,20 +59,20 @@ class Logger(QObject):
                 logging.debug('INVALID LOG_TYPE: '.format(msg),*args, **kwargs)
 
     def log_qml_message(self, type: str, msg, *args, **kwargs):
-        self.log_message(type, 'QML - {}'.fromat(msg), *args, **kwargs)
+        self.log_message(type, 'QML - {}'.format(msg), *args, **kwargs)
 
     @Slot(str)
-    def logError(self, msg: str):
+    def log_error(self, msg: str):
         self.get_instance().log_qml_message('ERROR',msg)
     
     @Slot(str)
-    def logWarning(self, msg: str):
+    def log_warning(self, msg: str):
         self.get_instance().log_qml_message('WARN',msg)
     @Slot(str)
-    def logInfo(self, msg: str):
+    def log_info(self, msg: str):
         self.get_instance().log_qml_message('INFO',msg)
     @Slot(str)
-    def logDebug(self, msg: str):
+    def log_debug(self, msg: str):
         self.get_instance().log_qml_message('DEBUG',msg)
 
     @enabled.setter
@@ -85,7 +85,7 @@ class Logger(QObject):
         log_level = log_config["level"]
         name = log_config["name"]
         if self.enabled:
-            logging.basicConfig(filename=name, encoding='utf-8',
+            logging.basicConfig(filename=name,
                         format='%(asctime)s: %(levelname)s - %(message)s', level=log_level)
 
     
