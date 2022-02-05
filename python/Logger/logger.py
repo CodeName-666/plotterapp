@@ -1,6 +1,6 @@
 import logging
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject, Slot, Signal, QTimer
+from PySide2.QtCore import QObject, Slot, Property
 import typing
 
 
@@ -34,25 +34,46 @@ class Logger(QObject):
             Logger()
         return Logger.__instance
 
-    @property
+    @Property(bool)
     def enabled(self):
         try:
             return self._enabled
         except: 
             return False
+            
+    @enabled.setter
+    def enabled(self, status):
+        self._enabled = status
 
     def log_message(self, type: str, msg, *args, **kwargs):
-        if(type == 'ERROR'):
-            logging.error(msg,*args, **kwargs)
-        elif(type == 'WARN'):
-            logging.warning(msg,*args, **kwargs)
-        elif(type == 'INFO'):
-            logging.info(msg,*args, **kwargs)
-        elif(type == 'DEBUG'):
-            logging.debug(msg,*args, **kwargs)
-        else:
-            logging.debug(msg,*args, **kwargs)
-        
+        if self.enabled: 
+            if(type == 'ERROR'):
+                logging.error(msg,*args, **kwargs)
+            elif(type == 'WARN'):
+                logging.warning(msg,*args, **kwargs)
+            elif(type == 'INFO'):
+                logging.info(msg,*args, **kwargs)
+            elif(type == 'DEBUG'):
+                logging.debug(msg,*args, **kwargs)
+            else:
+                logging.debug('INVALID LOG_TYPE: '.format(msg),*args, **kwargs)
+
+    def log_qml_message(self, type: str, msg, *args, **kwargs):
+        self.log_message(type, 'QML - {}'.fromat(msg), *args, **kwargs)
+
+    @Slot(str)
+    def logError(self, msg: str):
+        self.get_instance().log_qml_message('ERROR',msg)
+    
+    @Slot(str)
+    def logWarning(self, msg: str):
+        self.get_instance().log_qml_message('WARN',msg)
+    @Slot(str)
+    def logInfo(self, msg: str):
+        self.get_instance().log_qml_message('INFO',msg)
+    @Slot(str)
+    def logDebug(self, msg: str):
+        self.get_instance().log_qml_message('DEBUG',msg)
 
     @enabled.setter
     def enabled(self, status):
@@ -81,7 +102,6 @@ if __name__ == "__main__":
     x.setup(config)
 
     warning("test 1,2,3")
-
     debug("laösdjflas")
     
 
