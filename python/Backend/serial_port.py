@@ -12,11 +12,10 @@ def get_serial_ports():
     return [port.name for port in ports]
 
 
-class SerialPort(QObject):
+class SerialPort():
     _com_updater_signal = Signal(dict)
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
-        super(SerialPort, self).__init__(parent)
         self._com_updater_timer = QTimer()
         self.com_ports = []
         self._serial = serial.Serial()

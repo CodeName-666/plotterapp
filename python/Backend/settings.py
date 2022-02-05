@@ -8,7 +8,7 @@ import typing
 class Settings(QObject):
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
-        super(Settings,self).__init__(parent)
+        super(Settings,self).__init__()
 
 
     @Slot('QJSValue', result='bool')

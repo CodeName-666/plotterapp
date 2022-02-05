@@ -12,14 +12,14 @@ from Logger import logger
 from Logger.logger import Logger
 
 
-class Backend(Settings, SerialPort, UiSetup, Logger):
+class Backend(Logger, SerialPort, UiSetup, Settings):
 
     def __init__(self):
-        super(Settings, self).__init__()
-        super(SerialPort, self).__init__()
-        super(UiSetup, self).__init__()
-        super(Logger, self).__init__()
-
+        Logger.__init__(self)
+        SerialPort.__init__(self)
+        UiSetup.__init__(self)
+        Settings.__init__(self)
+        
     @property
     def receiver(self):
         try:

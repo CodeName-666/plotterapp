@@ -5,27 +5,26 @@ import typing
 
 
 def warning(msg, *args, **kwargs):
-    Logger.get_instance().log_message('WARN', msg, *args, **kwargs)
+    Logger.get_instance().log_pyt_message('WARN', msg, *args, **kwargs)
 
 def info(msg, *args, **kwargs):
-    Logger.get_instance().log_message('INFO', msg, *args, **kwargs)
+    Logger.get_instance().log_pyt_message('INFO', msg, *args, **kwargs)
 
 def error(msg, *args, **kwargs):
-    Logger.get_instance().log_message('ERROR', msg, *args, **kwargs)
+    Logger.get_instance().log_pyt_message('ERROR', msg, *args, **kwargs)
 
 def debug(msg, *args, **kwargs):
-    Logger.get_instance().log_message('DEBUG', msg, *args, **kwargs)
+    Logger.get_instance().log_pyt_message('DEBUG', msg, *args, **kwargs)
 
 
 
-class Logger(QObject):
+class Logger():
     
     __instance = None
     def __init__(self) -> None:
         if Logger.__instance != None:
             pass
         else:
-            super(Logger,self).__init__()
             Logger.__instance = self
 
     @staticmethod
@@ -60,6 +59,9 @@ class Logger(QObject):
 
     def log_qml_message(self, type: str, msg, *args, **kwargs):
         self.log_message(type, 'QML - {}'.format(msg), *args, **kwargs)
+
+    def log_pyt_message(self, type: str, msg, *args, **kwargs):
+        self.log_message(type, 'PYT - {}'.format(msg), *args, **kwargs)
 
     @Slot(str)
     def log_error(self, msg: str):

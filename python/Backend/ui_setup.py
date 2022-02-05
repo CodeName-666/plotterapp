@@ -5,10 +5,9 @@ import typing
 from Logger import logger
 
 
-class UiSetup(QObject):
+class UiSetup():
 
-    def __init__(self, parent: typing.Optional[QObject] = None) -> None:
-        super(UiSetup, self).__init__()
+    def __init__(self) -> None:
         self.setup_done_status = False
 
     @property
