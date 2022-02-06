@@ -2,23 +2,31 @@
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 from PySide2.QtQml import QJSValue
 from Receiver.receiver import Receiver
+from PySide2.QtCharts import QtCharts
 
 
 # Backend interfaces
 from .settings import Settings
 from .serial_port import SerialPort
-from .ui_setup import UiSetup
+from .setup import Setup
 from Logger import logger
 from Logger.logger import Logger
 
 
-class Backend(Logger, SerialPort, UiSetup, Settings):
+class Backend(Logger, SerialPort, Setup, Settings):
+
+    onCreateLine = Signal(str,int)
 
     def __init__(self):
         Logger.__init__(self)
         SerialPort.__init__(self)
-        UiSetup.__init__(self)
+        Setup.__init__(self)
         Settings.__init__(self)
+        self.cycleTimer = QTimer()
+        self.cycleTimer.timeout.connect(self.loop_cbk)
+        self.cycleTimer.start(1000)
+        self.line: QtCharts.QLineSeries = None
+
         
     @property
     def receiver(self):
@@ -58,6 +66,8 @@ class Backend(Logger, SerialPort, UiSetup, Settings):
         else:
             return False
 
-    @Slot(bool)
-    def test_fnc(self, status: bool):
-        print("BACKEND: status = {}".format(status))
+    def loop_cbk(self):
+        if self.setup_done_status:
+            self.line = self.onCreateLine.emit("Testline", None)
+            print("Line Created")
+ 

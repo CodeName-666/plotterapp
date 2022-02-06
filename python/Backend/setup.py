@@ -5,7 +5,7 @@ import typing
 from Logger import logger
 
 
-class UiSetup():
+class Setup():
 
     def __init__(self) -> None:
         self.setup_done_status = False
@@ -24,5 +24,5 @@ class UiSetup():
     @Slot(bool)
     def setup_done(self, status: bool):
         self.setup_done_status = status
-        logger.info("Backend setup done")
+        logger.info("Setup Status: {}".format(status))
 
