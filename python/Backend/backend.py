@@ -25,7 +25,7 @@ class Backend(Logger, SerialPort, Setup, Settings):
         self.cycleTimer = QTimer()
         self.cycleTimer.timeout.connect(self.loop_cbk)
         self.cycleTimer.start(1000)
-        self.line: QtCharts.QLineSeries = None
+        self.line: QtCharts.QLineSeries = []
 
         
     @property
@@ -68,6 +68,9 @@ class Backend(Logger, SerialPort, Setup, Settings):
 
     def loop_cbk(self):
         if self.setup_done_status:
-            self.line = self.onCreateLine.emit("Testline", None)
+            self.onCreateLine.emit("Testline", None)
             print("Line Created")
- 
+    
+    @Slot(QObject)
+    def add_line(self, line: QtCharts.QLineSeries):
+        self.line.append(line)

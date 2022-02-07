@@ -25,9 +25,8 @@ class  Plotter(QObject):
         # Get the path of the current directory, and then add the name
         # of the QML file, to load it.
         self._qmlFile = join(dirname(__file__), '../../qml/main.qml')
-        
+
         self._backend = None
-        self._plot_list = []
     
     def set_backend(self, backend: Backend):        
         self._backend = backend
