@@ -16,17 +16,28 @@ from Logger.logger import Logger
 class Backend(Logger, SerialPort, Setup, Settings):
 
     onCreateLine = Signal(str,int)
+    __backend_instance = None
 
     def __init__(self):
-        Logger.__init__(self)
-        SerialPort.__init__(self)
-        Setup.__init__(self)
-        Settings.__init__(self)
-        self.cycleTimer = QTimer()
-        self.cycleTimer.timeout.connect(self.loop_cbk)
-        self.cycleTimer.start(1000)
-        self.line: QtCharts.QLineSeries = None
+        if Backend.__backend_instance != None:
+            pass
+        else:
+            Logger.__init__(self)
+            SerialPort.__init__(self)
+            Setup.__init__(self)
+            Settings.__init__(self)
+            self.cycleTimer = QTimer()
+            self.cycleTimer.timeout.connect(self.loop_cbk)
+            self.cycleTimer.start(1000)
+            self.line: QtCharts.QLineSeries = None
+            Backend.__backend_instance = self
 
+    
+    @staticmethod
+    def get_instance():
+        if Backend.__backend_instance == None:
+            Backend()
+        return Backend.__backend_instance
         
     @property
     def receiver(self):
