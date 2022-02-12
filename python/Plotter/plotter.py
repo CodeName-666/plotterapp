@@ -13,7 +13,7 @@ from PySide2.QtCore import QObject, Slot, Signal
 
 
 class  Plotter(QObject):
-
+    
     def __init__(self, args, config: typing.Dict) -> None:
         super().__init__()
         

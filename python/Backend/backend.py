@@ -35,17 +35,6 @@ class Backend(Logger, SerialPort, Setup, Settings):
         if Backend.__backend_instance == None:
             Backend()
         return Backend.__backend_instance
-        
-    @property
-    def receiver(self):
-        try:
-            return self._receiver
-        except:
-            return None
-
-    @receiver.setter
-    def receiver(self, receiver: Receiver) -> int:
-        self._receiver = receiver
 
     @Slot('str', result='bool')
     def connect(self, connection_type: str) -> bool:
