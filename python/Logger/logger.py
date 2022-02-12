@@ -17,7 +17,6 @@ def debug(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('DEBUG', msg, *args, **kwargs)
 
 
-
 class Logger():
     
     __instance = None
@@ -36,13 +35,13 @@ class Logger():
     @Property(bool)
     def enabled(self):
         try:
-            return self._enabled
+            return Logger._enabled
         except: 
             return False
 
     @enabled.setter
     def enabled(self, status):
-        self._enabled = status
+        Logger._enabled = status
 
     def log_message(self, type: str, msg, *args, **kwargs):
         if self.enabled: 
@@ -65,21 +64,19 @@ class Logger():
 
     @Slot(str)
     def log_error(self, msg: str):
-        self.get_instance().log_qml_message('ERROR',msg)
-    
+        Logger.get_instance().log_qml_message('ERROR',msg)
+
     @Slot(str)
     def log_warning(self, msg: str):
-        self.get_instance().log_qml_message('WARN',msg)
+        Logger.get_instance().log_qml_message('WARN',msg)
+
     @Slot(str)
     def log_info(self, msg: str):
-        self.get_instance().log_qml_message('INFO',msg)
+        Logger.get_instance().log_qml_message('INFO',msg)
+
     @Slot(str)
     def log_debug(self, msg: str):
-        self.get_instance().log_qml_message('DEBUG',msg)
-
-    @enabled.setter
-    def enabled(self, status):
-        self._enabled = status   
+        Logger.get_instance().log_qml_message('DEBUG',msg)
 
     def setup(self, config: dict) -> None:
         log_config = config["logging"]

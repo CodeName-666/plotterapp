@@ -4,6 +4,7 @@ import typing
 from os.path import abspath, dirname, join
 from Backend.backend import Backend
 from Logger import logger
+from Chart.chart import Chart
 from PySide2.QtWidgets import QApplication
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtCore import QObject, Slot, Signal
@@ -27,6 +28,7 @@ class  Plotter(QObject):
         self._qmlFile = join(dirname(__file__), '../../qml/main.qml')
 
         self._backend = None
+        self._chart = Chart('chart')
     
     def set_backend(self, backend: Backend):        
         self._backend = backend

@@ -16,6 +16,7 @@ from Logger.logger import Logger
 class Backend(Logger, SerialPort, Setup, Settings):
 
     onCreateLine = Signal(str,int)
+    sendLine = Signal(QObject)
     __backend_instance = None
 
     def __init__(self):
@@ -26,10 +27,6 @@ class Backend(Logger, SerialPort, Setup, Settings):
             SerialPort.__init__(self)
             Setup.__init__(self)
             Settings.__init__(self)
-            self.cycleTimer = QTimer()
-            self.cycleTimer.timeout.connect(self.loop_cbk)
-            self.cycleTimer.start(1000)
-        self.line: QtCharts.QLineSeries = None
             Backend.__backend_instance = self
 
     
@@ -76,12 +73,3 @@ class Backend(Logger, SerialPort, Setup, Settings):
             return self.receiver_list[connection_type].settings_valid()
         else:
             return False
-
-    def loop_cbk(self):
-        if self.setup_done_status:
-            self.onCreateLine.emit("Testline", None)
-            print("Line Created")
-    
-    @Slot(QObject)
-    def add_line(self, line: QtCharts.QLineSeries):
-        self.line.append(line)

@@ -55,9 +55,9 @@ if __name__ == "__main__":
     json_config = getJsonConfigData('../config/config.json')
 
     Logger.get_instance().setup(json_config)
+    Logger.log_info('Logger Startup')
     plotter = Plotter(sys.argv, json_config)
     backend = Backend()
-    backend.log_info("Test Call")
 
     backend.setup(json_config)
 
