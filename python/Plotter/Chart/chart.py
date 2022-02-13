@@ -17,7 +17,7 @@ class Chart():
             return ""
     
     @object_name.setter
-    def object_name(sefl, obj_name: str):
+    def object_name(self, obj_name: str):
         self._object_name = obj_name
 
     @property

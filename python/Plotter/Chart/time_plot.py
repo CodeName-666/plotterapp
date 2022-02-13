@@ -1,5 +1,5 @@
 import typing
-from plot import Plot
+from python.Plotter.Plots.chart import Plot
 from PySide2.QtCore import QObject, Slot, Signal
 
 
