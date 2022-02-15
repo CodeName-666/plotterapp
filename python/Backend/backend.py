@@ -11,9 +11,9 @@ from .serial_port import SerialPort
 from .setup import Setup
 from Logger import logger
 from Logger.logger import Logger
+from .chart import Chart
 
-
-class Backend(Logger, SerialPort, Setup, Settings):
+class Backend(Logger, SerialPort, Setup, Chart, Settings):
 
     onCreateLine = Signal(str,int)
     sendLine = Signal(QObject)
@@ -26,6 +26,7 @@ class Backend(Logger, SerialPort, Setup, Settings):
             Logger.__init__(self)
             SerialPort.__init__(self)
             Setup.__init__(self)
+            Chart.__init__(self)
             Settings.__init__(self)
             Backend.__backend_instance = self
 
