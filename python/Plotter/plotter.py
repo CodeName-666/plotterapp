@@ -4,7 +4,6 @@ import typing
 from os.path import abspath, dirname, join
 from Backend.backend import Backend
 from Logger import logger
-from python.Backend.chart import Chart
 from PySide2.QtWidgets import QApplication
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtCore import QObject, Slot, Signal
@@ -40,6 +39,7 @@ class  Plotter(QObject):
         self._engine.load(abspath(self._qmlFile))
 
     def run(self) -> int: 
+        self._backend.new_graph.emit("test",None)
         return self._app.exec_()
 
     def rootObjects(self) -> typing.List:
