@@ -50,7 +50,7 @@ class Chart():
 
     def loop(self):
         c = self._chart
-        c.axes()
+        #c.axes()
         print("loop")
 
     def setup(self, dict: typing.Dict):
