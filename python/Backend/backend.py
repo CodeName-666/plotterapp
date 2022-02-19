@@ -15,8 +15,6 @@ from .chart import Chart
 
 class Backend(Logger, SerialPort, Setup, Chart, Settings):
 
-    onCreateLine = Signal(str,int)
-    sendLine = Signal(QObject)
     __backend_instance = None
 
     def __init__(self):
