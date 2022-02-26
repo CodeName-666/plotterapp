@@ -53,6 +53,8 @@ class Logger():
                 logging.info(msg,*args, **kwargs)
             elif(type == 'DEBUG'):
                 logging.debug(msg,*args, **kwargs)
+            elif(type == 'STACK'):
+                logging.debug(msg,*args, **kwargs)
             else:
                 logging.debug('INVALID LOG_TYPE: '.format(msg),*args, **kwargs)
 
@@ -77,6 +79,10 @@ class Logger():
     @Slot(str)
     def log_debug(self, msg: str):
         Logger.get_instance().log_qml_message('DEBUG',msg)
+    
+    @Slot(str)
+    def log_qml_stack(self,stack_info): 
+        self.log_message("STACK", 'QML Stack - {}'.format(stack_info))
 
     def setup(self, config: dict) -> None:
         log_config = config["logging"]
