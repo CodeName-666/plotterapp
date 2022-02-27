@@ -3,11 +3,14 @@ import typing
 from PySide2.QtCore import QObject, Slot, Signal, Property, QTimer, QRectF
 from PySide2.QtCharts import QtCharts
 
-
-class Chart():
-
+class ChartSignals:
+    
     new_graph = Signal(str, int)
-    scroll = Signal(int)
+    
+    scrollRight = Signal(int)
+
+
+class Chart(ChartSignals):
 
     def __init__(self) -> None:
         self._graph_list = {}
@@ -18,7 +21,7 @@ class Chart():
         self._m_y = 0
         self._xPoint =  0.0
         self._yPoint =  0.0
-        
+                
         
 
     @Slot(str,QObject, result= bool)
@@ -43,6 +46,30 @@ class Chart():
     @plot_area.setter
     def plot_area(self, area:QRectF):
         self._plot_area = area
+
+    @Property(QtCharts.QValueAxis)
+    def xAxis(self) -> QtCharts.QValueAxis:
+        try:
+            return self._xAxis
+        except:
+            return QtCharts.QValueAxis()
+
+    @xAxis.setter
+    def xAxis(self, new_x_axis: QtCharts.QValueAxis):
+        self._xAxis = new_x_axis
+
+    @Property(QtCharts.QValueAxis)
+    def yAxis(self) -> QtCharts.QValueAxis:
+        try:
+            return self._yAxis
+        except:
+            return QtCharts.QValueAxis()
+
+    @yAxis.setter
+    def yAxis(self, new_y_axis: QtCharts.QValueAxis):
+        self._yAxis = new_y_axis
+
+
 
     @Slot(str,QObject, result= bool)
     def append_graph_point(self, graph_name: str, point: typing.Tuple ):
