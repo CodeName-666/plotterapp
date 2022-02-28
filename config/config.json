@@ -34,6 +34,12 @@
     }
   ],
   "qml": {
+    "interfaces": [
+      "Serial",
+      "Telnet",
+      "Test"
+    ],
+    
     "serial" : {
        "dataBits" : [
         {"name": "5Bit", "value": 5},
