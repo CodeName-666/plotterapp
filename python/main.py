@@ -62,7 +62,7 @@ if __name__ == "__main__":
     backend.setup(json_config)
 
     plotter.set_backend(backend)
-    plotter.setup_app()
+    plotter.load_app()
 
     if not plotter.rootObjects():
         sys.exit(-1)

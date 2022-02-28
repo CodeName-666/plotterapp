@@ -32,10 +32,7 @@ class  Plotter(QObject):
         self._backend = backend
         self._context.setContextProperty("Backend", backend)
 
-    def setup(self, config: dict):
-        pass
-
-    def setup_app(self):
+    def load_app(self):
         self._engine.load(abspath(self._qmlFile))
 
     def run(self) -> int: 
@@ -50,19 +47,6 @@ class  Plotter(QObject):
         for path in path_lst:
             importlst.append(join(dirname(__file__),path))
         self._engine.setImportPathList(importlst)
-
-    def connectPy2QMLSignalsSlot(self, serial_config):
-        root_object = self._engine.rootObjects()[0]
-    
-        if root_object:
-            connected = serial_config._com_updater_signal.connect(root_object.updateComPorts)
-            if connected:
-                print("Signal Connected")
-
-            else:
-                print("Not Connected")
-        else:
-            print("Object not found")
-    
-    def setup_backend(self, config: dict):
+   
+    def setup(self, config: dict):
         pass
