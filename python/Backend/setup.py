@@ -39,7 +39,7 @@ class Setup():
         except:
             return False
 
-
+    @ui_setup_done.setter
     def ui_setup_done(self, status: bool):
         if(self.__ui_setup_done != status):
             logger.info("Backend Setup Status: {}".format(status))
@@ -47,12 +47,12 @@ class Setup():
             self.ui_setup_done_changed.emit()
     
     @property(dict)
-    def ui_config(self) -> typing.Dict:
+    def ui_config(self) -> dict:
         try:
             return self.__config
         except:
             return None
     
     @ui_config.setter
-    def ui_config(self, new_config: typing.Dict):
+    def ui_config(self, new_config: dict):
         self.__config = new_config

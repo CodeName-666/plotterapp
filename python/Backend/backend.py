@@ -63,4 +63,4 @@ class Backend(Logger, SerialPort, Setup, Chart, Settings):
             return False
 
     def config(self, config: dict):
-        Setup.config(config["qml"])
+        Setup.ui_config(config["qml"])
