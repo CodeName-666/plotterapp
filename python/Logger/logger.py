@@ -84,11 +84,11 @@ class Logger():
     def log_qml_stack(self,stack_info): 
         self.log_message("STACK", 'QML Stack - {}'.format(stack_info))
 
-    def setup(self, config: dict) -> None:
-        log_config = config["logging"]
-        self.enabled = log_config["enabled"]
-        log_level = log_config["level"]
-        name = log_config["name"]
+    def config(self, config: dict) -> None:
+        self.enabled = config["enabled"]
+        log_level = config["level"]
+        name = config["name"]
+
         if self.enabled:
             logging.basicConfig(filename=name,
                         format='%(asctime)s: %(levelname)s - %(message)s', level=log_level)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     }
 
     x = Logger()
-    x.setup(config)
+    x.config(config)
 
     warning("test 1,2,3")
     debug("laösdjflas")

@@ -78,5 +78,5 @@ class Chart(ChartSignals):
     def loop(self):
         pass
 
-    def setup(self, dict: typing.Dict):
+    def config(self, config: typing.Dict):
         pass

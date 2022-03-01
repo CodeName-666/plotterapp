@@ -54,12 +54,17 @@ if __name__ == "__main__":
     # QQmlDebuggingEnabler()
     json_config = getJsonConfigData('../config/config.json')
 
-    Logger.get_instance().setup(json_config)
-    Logger.get_instance().log_info('Logger Startup')
+    Logger.get_instance().config(json_config["logging"])
+
+    Logger.get_instance().log_info('=========================================')
+    Logger.get_instance().log_info('========== Logger Startup ===============')
+    Logger.get_instance().log_info('=========================================')
+
+
     plotter = Plotter(sys.argv, json_config)
     backend = Backend()
 
-    backend.setup(json_config)
+    backend.config(json_config)
 
     plotter.set_backend(backend)
     plotter.load_app()

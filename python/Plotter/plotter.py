@@ -34,9 +34,9 @@ class  Plotter(QObject):
 
     def load_app(self):
         self.__engine.load(abspath(self.__qmlFile))
+        self.__backend.setupUi(self.__backend.ui_config)
 
     def run(self) -> int: 
-        self.__backend.new_graph.emit("test",None)
         return self.__app.exec_()
 
     def rootObjects(self) -> typing.List:

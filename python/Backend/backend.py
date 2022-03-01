@@ -61,3 +61,6 @@ class Backend(Logger, SerialPort, Setup, Chart, Settings):
             return self.receiver_list[connection_type].settings_valid()
         else:
             return False
+
+    def config(self, config: dict):
+        Setup.config(config["qml"])
