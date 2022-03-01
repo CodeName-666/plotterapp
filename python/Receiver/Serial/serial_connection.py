@@ -14,26 +14,26 @@ from PySide2.QtCore import QObject, Slot, Signal, QTimer
 class SerialConnection(Receiver):
     def __init__(self, default_config: dict = None):
         Receiver.__init__(self, ConnectionType.SERIAL)
-        self._serial = serial.Serial()
-        self._config = None
+        self.__serial = serial.Serial()
+        self.__config = None
         
         self.setup(default_config)
     
        
     def open_connection(self):
-        if self._serial is not None:
-            if not self._serial.isOpen():
-                self._serial.open()
+        if self.__serial is not None:
+            if not self.__serial.isOpen():
+                self.__serial.open()
 
     def close_connection(self):
-        if self._serial is not None:
+        if self.__serial is not None:
             if self.is_connected():
-                self._serial.close()
+                self.__serial.close()
 
     def is_connected(self):
-        return self._serial.isOpen()
+        return self.__serial.isOpen()
 
     def setup(self, config: dict):
-        self._config = SerialConfig(config)
+        self.__config = SerialConfig(config)
 
 

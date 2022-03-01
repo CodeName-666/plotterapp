@@ -17,27 +17,27 @@ class SerialPort():
     comPortUpdate = Signal(dict)
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
-        self._com_updater_timer = QTimer()
+        self.__com_updater_timer = QTimer()
         self.com_ports = []
-        self._serial = serial.Serial()
+        self.__serial = serial.Serial()
 
         self.__init_update_timer()
     
 
     def __init_update_timer(self):
-        self._com_updater_timer.timeout.connect(self.com_updater_cbk)
-        self._com_updater_timer.start(1000)
+        self.__com_updater_timer.timeout.connect(self.com_updater_cbk)
+        self.__com_updater_timer.start(1000)
 
     @property
     def com_ports(self):
         try:
-            return self._com_list
+            return self.__com_list
         except:
             return None
 
     @com_ports.setter
     def com_ports(self, com_list):
-        self._com_list = com_list
+        self.__com_list = com_list
 
     def com_updater_cbk(self):
         new_com_list = get_serial_ports()

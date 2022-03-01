@@ -16,11 +16,11 @@ class Receiver(QtCore.QThread):
 
     @property
     def type(self) -> ConnectionType:
-        return self._type
+        return self.__type
 
     @type.setter
     def type(self, type: ConnectionType):
-        self._type = type
+        self.__type = type
 
     def open_connection(self):
         pass

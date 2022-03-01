@@ -9,7 +9,7 @@ class TelnetConnection(Receiver):
     def __init__(self, config: dict = None):
         Receiver.__init__(self, ConnectionType.TELNET)
         self.telnet = Telnet()
-        self._config = None
+        self.__config = None
         self.setup(config)
 
     def open_connection(self):
@@ -22,5 +22,5 @@ class TelnetConnection(Receiver):
         pass
 
     def setup(self, config: dict):
-        self._config = TelnetConfig(config)
+        self.__config = TelnetConfig(config)
 

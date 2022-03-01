@@ -3,7 +3,12 @@
 
 class Test():
     def __init__(self) -> None:
-        pass
+        self.__private_member = 10
+
+
+    def get(self):
+        return self.__private_member
+
 
     @property
     def testProp(self):
@@ -35,7 +40,9 @@ if __name__ == "__main__":
     p = Test()
     p.testProp = 5
     b = p.testProp
-    
+    print("Member = {}".format(p.get()))
+    print("Member = {}".format(p.__private_member))
+
     p.secProp = 10
     print("List = {}".format(p.secProp))
     p.secProp = 25

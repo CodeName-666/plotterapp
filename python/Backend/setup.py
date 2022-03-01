@@ -1,28 +1,37 @@
 
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject, Slot, Signal, QTimer
+from PySide2.QtCore import QObject, Slot, Signal, QTimer, Property
 import typing
 from Logger import logger
 
 
-class Setup():
+class SetupSignals():
+    setupUi = Signal(dict)
+
+
+class Setup(SetupSignals):
 
     def __init__(self) -> None:
-        self.setup_done_status = False
+        self.__backend_setup_done = False
+        self.__ui_setup_done = False
+        self.__config = None
 
-    @property
-    def setup_done_status(self): 
-        try:
-            return self._setup_done_status
+    @Property(bool)
+    def backend_setup_done(self) -> bool:
+        try: 
+            return self.__backend_setup_done
         except:
-            return False 
+            return False
 
-    @setup_done_status.setter
-    def setup_done_status(self, status): 
-        self._setup_done_status = status
+    @backend_setup_done.setter
+    def backend_setup_done(self, status: bool):
+        self.__backend_setup_done = status
+        logger.info("Backend Setup Status: {}".format(status))
 
     @Slot(bool)
-    def setup_done(self, status: bool):
-        self.setup_done_status = status
-        logger.info("Setup Status: {}".format(status))
+    def ui_setup_done(self, status: bool):
+        self.__ui_setup_done = status
+        logger.info("Backend Setup Status: {}".format(status))
 
+    def set_config(self, config: dict):
+        self.__config = config
