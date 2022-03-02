@@ -29,7 +29,7 @@ class Setup():
         if(self.backend_setup_done != status):
             logger.info("Backend Setup Status: {}".format(status))
             self.__backend_setup_done = status
-            self.backendSetupDoneChanged.emit()
+            self.backendSetupDoneChanged.emit(status)
             
 
     @Property(bool)
@@ -41,10 +41,10 @@ class Setup():
 
     @ui_setup_done.setter
     def ui_setup_done(self, status: bool):
-        if(self.__ui_setup_done != status):
-            logger.info("Backend Setup Status: {}".format(status))
+        if(self.ui_setup_done != status):
+            logger.info("UI Setup Status: {}".format(status))
             self.__ui_setup_done = status
-            self.ui_setup_done_changed.emit()
+            self.ui_setup_done_changed.emit(status)
     
     @property
     def ui_config(self) -> dict:

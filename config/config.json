@@ -61,6 +61,7 @@
   },
   "logging" : {
     "enabled": 1,
+    "console_log": 1,
     "name" : "logfile.log",
     "level": "DEBUG"
   }

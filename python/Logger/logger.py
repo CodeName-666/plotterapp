@@ -35,13 +35,25 @@ class Logger():
     @Property(bool)
     def enabled(self):
         try:
-            return Logger._enabled
+            return self.__enabled
         except: 
             return False
 
     @enabled.setter
     def enabled(self, status):
-        Logger._enabled = status
+        self.__enabled = status
+
+    @property 
+    def console_log(self):
+        try:
+            return self.__console_log
+        except: 
+            return False
+
+    @console_log.setter
+    def console_log(self, status):
+        self.__console_log = status
+    
 
     def log_message(self, type: str, msg, *args, **kwargs):
         if self.enabled: 
@@ -57,6 +69,9 @@ class Logger():
                 logging.debug(msg,*args, **kwargs)
             else:
                 logging.debug('INVALID LOG_TYPE: '.format(msg),*args, **kwargs)
+
+        if self.console_log:
+            print("{oType} - {oMsg}".format(oType=type, oMsg = msg))
 
     def log_qml_message(self, type: str, msg, *args, **kwargs):
         self.log_message(type, 'QML - {}'.format(msg), *args, **kwargs)
@@ -86,6 +101,7 @@ class Logger():
 
     def config(self, config: dict) -> None:
         self.enabled = config["enabled"]
+        self.console_log = config["console_log"]
         log_level = config["level"]
         name = config["name"]
 

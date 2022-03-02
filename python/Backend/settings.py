@@ -30,3 +30,11 @@ class Settings(QObject):
         else:
             logger.error("Config parameter TYPE not found")
             return False
+
+
+    @Slot('str', result='bool')
+    def settings_valid(self, connection_type: str) -> bool:
+        if connection_type in self.receiver_list.keys():
+            return self.receiver_list[connection_type].settings_valid()
+        else:
+            return False

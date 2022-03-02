@@ -13,7 +13,7 @@ from Logger import logger
 from Logger.logger import Logger
 from .chart import Chart
 
-class Backend(Logger, SerialPort, Setup, Chart, Settings):
+class Backend(Settings, Logger, SerialPort, Setup, Chart):
 
     __backend_instance = None
 
@@ -21,19 +21,21 @@ class Backend(Logger, SerialPort, Setup, Chart, Settings):
         if Backend.__backend_instance != None:
             pass
         else:
+            Settings.__init__(self)
             Logger.__init__(self)
             SerialPort.__init__(self)
             Setup.__init__(self)
             Chart.__init__(self)
-            Settings.__init__(self)
             Backend.__backend_instance = self
-
     
     @staticmethod
     def get_instance():
         if Backend.__backend_instance == None:
             Backend()
         return Backend.__backend_instance
+
+    def connect_signals(self):
+        pass
 
     @Slot('str', result='bool')
     def connect(self, connection_type: str) -> bool:
@@ -55,12 +57,5 @@ class Backend(Logger, SerialPort, Setup, Chart, Settings):
             logger.error("Invalid Connection type")
             return False
 
-    @Slot('str', result='bool')
-    def settings_valid(self, connection_type: str) -> bool:
-        if connection_type in self.receiver_list.keys():
-            return self.receiver_list[connection_type].settings_valid()
-        else:
-            return False
-
     def config(self, config: dict):
-        Setup.ui_config(config["qml"])
+        Setup.ui_config = config["qml"]
