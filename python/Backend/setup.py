@@ -7,17 +7,17 @@ from Logger import logger
 
 
 class Setup():
-    backend_setup_done_changed = Signal()
-    ui_setup = Signal(dict)
-    ui_setup_done_changed = Signal()
 
+    ui_setup = Signal(dict)
+    ui_setup_done_changed = Signal(bool)
+    backendSetupDoneChanged = Signal(bool)
 
     def __init__(self) -> None:
+        self.ui_config = None
         self.backend_setup_done = False
         self.ui_setup_done = False
-        self.ui_config = None
-
-    @Property(bool, notify=backend_setup_done_changed)
+        
+    @Property(bool)
     def backend_setup_done(self) -> bool:
         try: 
             return self.__backend_setup_done
@@ -29,10 +29,10 @@ class Setup():
         if(self.backend_setup_done != status):
             logger.info("Backend Setup Status: {}".format(status))
             self.__backend_setup_done = status
-            self.backend_setup_done_changed.emit()
+            self.backendSetupDoneChanged.emit()
             
 
-    @Property(bool, notify=ui_setup_done_changed)
+    @Property(bool)
     def ui_setup_done(self) -> bool:
         try: 
             return self.__ui_setup_done
@@ -46,7 +46,7 @@ class Setup():
             self.__ui_setup_done = status
             self.ui_setup_done_changed.emit()
     
-    @property(dict)
+    @property
     def ui_config(self) -> dict:
         try:
             return self.__config
@@ -56,3 +56,5 @@ class Setup():
     @ui_config.setter
     def ui_config(self, new_config: dict):
         self.__config = new_config
+
+

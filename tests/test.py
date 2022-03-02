@@ -1,10 +1,74 @@
+from PySide2.QtCore import QObject, Slot, Signal, QTimer, Property
 
 
+class C():
+    signal = Signal()
+    statusChanged = Signal(bool)
 
-class Test():
     def __init__(self) -> None:
-        self.__private_member = 10
+        self.signal.connect(self.cbk)
+        self.statusChanged.connect(self.status_cbk)
+        self.signal.emit()
+        self.status = True
+    
+    @Property(bool, notify=statusChanged)
+    def status(self) ->bool:
+        try:
+            return self.__status
+        except:
+            return False
 
+    @status.setter
+    def status(self, nStatus:bool):
+        if self.status != nStatus:
+            self.__status = nStatus
+            self.statusChanged.emit(nStatus)
+
+    def status_cbk(self, status:bool):
+        print("Status =  {}".format(status))
+
+    def cbk(self):
+        print("Works")
+
+
+class B(QObject):
+    def __init__(self) -> None:
+        QObject.__init__(self)
+
+
+class A(C,B):
+    def __init__(self) -> None:
+        B.__init__(self)
+        C.__init__(self)
+
+
+class Test(QObject):
+    sig = Signal()
+    statusChanged = Signal()
+
+    def __init__(self) -> None:
+        super(Test,self).__init__()
+        self.__private_member = 10
+        #self.sig.connect(self.cbk)
+        self.statusChanged.connect(self.cbk)
+
+
+    @Property(bool,notify=statusChanged)
+    def status(self) -> bool:
+        try:
+            return self._status
+        except:
+            return False
+
+    @status.setter
+    def status(self, status):
+        if self.status != status:
+            self._status = status
+            self.statusChanged.emit()
+
+
+    def cbk(self):
+        print("Works")
 
     def get(self):
         return self.__private_member
@@ -36,19 +100,23 @@ class Test():
             self.y = list()
             self.y.append(val)
 
-if __name__ == "__main__":
+def firstTest(): 
     p = Test()
+    
+    p.status = True
+
     p.testProp = 5
     b = p.testProp
     print("Member = {}".format(p.get()))
-    print("Member = {}".format(p.__private_member))
-
     p.secProp = 10
     print("List = {}".format(p.secProp))
     p.secProp = 25
     print("List = {}".format(p.secProp))
     p.secProp = 30
     print("List = {}".format(p.secProp))
+
+if __name__ == "__main__":
+    var = A()
 
 
 
