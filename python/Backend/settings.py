@@ -16,7 +16,7 @@ class Settings(QObject):
         if settings.hasProperty("type"):
             ok = False
             for r in self.receiver_list.values():
-                logger.inof("Receiver: {} == {}".format(r.type.name, settings.property("type").toString()))
+                logger.info("Receiver: {} == {}".format(r.type.name, settings.property("type").toString()))
                 if r.type.name == settings.property("type").toString():
                     r.update_settings(settings)
                     ok = True

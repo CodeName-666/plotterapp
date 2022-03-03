@@ -27,6 +27,7 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
             Setup.__init__(self)
             Chart.__init__(self)
             Backend.__backend_instance = self
+            self.connect_signals()
     
     @staticmethod
     def get_instance():
@@ -35,7 +36,8 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
         return Backend.__backend_instance
 
     def connect_signals(self):
-        pass
+        self.setup_backend_done_changed.connect(self.on_backend_setup_done)
+        
 
     @Slot('str', result='bool')
     def connect(self, connection_type: str) -> bool:
