@@ -1,5 +1,18 @@
 from PySide2.QtCore import QObject, Slot, Signal, QTimer, Property
 
+class D():
+    alpa = Signal()
+    blubb_works_good = Signal(bool)
+    
+    def __init__(self) -> None:
+        self.blubb_works_good.connect(self.test)
+        self.blubb_works_good.emit(True)
+    
+
+    def test(self, status):
+        print("TEST SLOT {}".format(status))
+
+
 
 class C():
     signal = Signal()
@@ -36,10 +49,11 @@ class B(QObject):
         QObject.__init__(self)
 
 
-class A(C,B):
+class A(C,B,D):
     def __init__(self) -> None:
         B.__init__(self)
         C.__init__(self)
+        D.__init__(self)
 
 
 class Test(QObject):
