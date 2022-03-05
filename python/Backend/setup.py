@@ -1,6 +1,6 @@
 
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject, Slot, Signal, QTimer, Property
+from PySide2.QtCore import QObject, Slot, Signal, QTimer, Property, QJsonValue
 from PySide2.QtQml import QJSValue
 import typing
 from Logger import logger
@@ -9,7 +9,7 @@ from Common.converter import Converter
 
 class Setup(Converter):
 
-    ui_setup = Signal(QJSValue)
+    ui_setup = Signal(QJsonValue)
     ui_setup_done_changed = Signal(bool)
     backend_setup_done_changed = Signal(bool)
 

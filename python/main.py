@@ -51,7 +51,7 @@ def getTelnetConfig(json_config: dict):
 
 if __name__ == "__main__":
 
-    # QQmlDebuggingEnabler()
+    debug = QQmlDebuggingEnabler()
     json_config = getJsonConfigData('../config/config.json')
 
     Logger.get_instance().config(json_config["logging"])

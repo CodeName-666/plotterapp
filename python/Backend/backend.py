@@ -1,5 +1,5 @@
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject, Slot, Signal, QTimer
+from PySide2.QtCore import QObject, Slot, Signal, QTimer, QJsonValue
 from PySide2.QtQml import QJSValue
 from Receiver.receiver import Receiver
 from PySide2.QtCharts import QtCharts
@@ -61,3 +61,8 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
 
     def config(self, config: dict):
         Setup.ui_config = config["qml"]
+
+    @Slot(QJsonValue)
+    def testSlot(self, object):
+        l = object
+        print(l)

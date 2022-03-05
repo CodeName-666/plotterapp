@@ -1,5 +1,5 @@
 from PySide2.QtQml import QJSValue
-
+from Logger import logger
 
 
 class Converter(): 
@@ -11,6 +11,7 @@ class Converter():
     def list_to_jsvalue(data_list):
         value = QJSValue()
         for i in range(len(data_list)):
+            logger.debug('key = {}: | value = {} | type = {}'.format(i,data_list[i],type(data_list[i])))
             if(type(data_list[i]) == dict):
                 sub_value = Converter.dict_to_jsvalue(data_list[i])
                 value.setProperty(i,sub_value)   
@@ -25,6 +26,7 @@ class Converter():
     def dict_to_jsvalue(data_dict):
         value = QJSValue()
         for (k,v) in data_dict.items():
+            logger.debug('key = {}: | value = {} | type = {}'.format(k,v,type(v)))
             if(type(v) == dict):
                 sub_value = Converter.dict_to_jsvalue(v)
                 value.setProperty(k,sub_value)   
