@@ -1,6 +1,6 @@
 
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject, Slot, Signal, QTimer, Property, QJsonValue
+from PySide2.QtCore import QObject ,Slot, Signal, QTimer, Property,QJsonArray
 from PySide2.QtQml import QJSValue
 import typing
 from Logger import logger
@@ -9,7 +9,7 @@ from Common.converter import Converter
 
 class Setup(Converter):
 
-    ui_setup = Signal(QJSValue)
+    ui_setup = Signal(QJsonArray)
     ui_setup_done_changed = Signal(bool)
     backend_setup_done_changed = Signal(bool)
 
@@ -52,7 +52,7 @@ class Setup(Converter):
         if status:
             if not self.ui_setup_done:
                 js_config = self.dict_to_jsvalue(self.ui_config)
-                self.ui_setup.emit(js_config)
+                self.ui_setup.emit(self.ui_config)
             else:
                 logger.info("UI already configured")
         else:
