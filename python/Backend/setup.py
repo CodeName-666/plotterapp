@@ -9,7 +9,7 @@ from Common.converter import Converter
 
 class Setup(Converter):
 
-    ui_setup = Signal(QJsonArray)
+    ui_setup = Signal('QVariant')
     ui_setup_done_changed = Signal(bool)
     backend_setup_done_changed = Signal(bool)
 
@@ -34,7 +34,7 @@ class Setup(Converter):
             self.__backend_setup_done = status
             self.backend_setup_done_changed.emit(status)
 
-    @Property(bool)
+    @Property('bool')
     def ui_setup_done(self) -> bool:
         try:
             return self.__ui_setup_done
