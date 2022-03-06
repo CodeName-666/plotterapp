@@ -9,12 +9,12 @@ import typing
 class Settings(QObject):
 
     new_interface = Signal(str)
-    new_settings = Signal(QJSValue)
+    new_settings = Signal('QJSValue')
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
         super(Settings, self).__init__()
 
-    @Property('str', notify= new_interface)
+    @Property(str, notify= new_interface)
     def interface(self) -> str:
         try:
             return self.__interface
@@ -23,8 +23,9 @@ class Settings(QObject):
 
     @interface.setter
     def interface(self,new_interface: str):
-        if self.__interface != new_interface:
+        if self.interface != new_interface:
             self.__interface = new_interface
+            logger.debug("New Interface: {}".format(new_interface))
             self.new_interface.emit(new_interface)
 
     @Property('QJSValue', notify= new_settings)
@@ -36,11 +37,12 @@ class Settings(QObject):
     
     @settings.setter
     def settings(self,new_settings: QJSValue):
-        if self.__settings != new_settings:
+        if self.settings != new_settings:
             self.__settings = new_settings
+            logger.debug("New Settings: ")
             self.new_settings.emit(new_settings)
 
-    @Slot('str','QJSValue', result='bool')
+    @Slot('QString','QJSValue', result='bool')
     def set_settings(self, interface: str, settings: QJSValue) -> bool:
         self.interface = interface
         self.settings = settings

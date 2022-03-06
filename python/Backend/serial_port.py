@@ -46,21 +46,6 @@ class SerialPort():
             self.com_port_update.emit(new_com_list)
             self.com_ports = new_com_list
 
-    # Obsolete Method
-    # def create_com_list():
-    #    com_port_list = []
-    #    available_com_ports = SerialConfig.serial_ports()
-    #    for k in available_com_ports:
-    #        print("New Port {}".format(k))
-    #
-    #    for i in range(1, 10):
-    #        port = 'COM{}'.format(i)
-    #        if port in available_com_ports:
-    #            port = port + ': [x]'
-    #
-    #        com_port_list.append(port)
-    #    return com_port_list
-
 
 if __name__ == "__main__":
 
