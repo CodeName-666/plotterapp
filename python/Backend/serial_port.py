@@ -42,7 +42,7 @@ class SerialPort():
     def com_updater_cbk(self):
         new_com_list = get_serial_ports()
         if new_com_list != self.com_ports:
-            logger.info("New Comports found {}".format(new_com_list))
+            logger.log_info("New Comports found {}".format(new_com_list))
             self.com_port_update.emit(new_com_list)
             self.com_ports = new_com_list
 

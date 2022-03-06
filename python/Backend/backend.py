@@ -47,16 +47,16 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
                     if self.receiver_list[connection_type].open_connection():
                         return True
                     else:
-                        logger.error("Cannot open connection, undef error")
+                        logger.log_error("Cannot open connection, undef error")
                         return False
                 else:
-                    logger.info("Allready Connected")
+                    logger.log_info("Allready Connected")
                     return False
             else:
-                logger.warning("Invalid settings")
+                logger.log_warning("Invalid settings")
                 return False
         else:
-            logger.error("Invalid Connection type")
+            logger.log_error("Invalid Connection type")
             return False
 
     def config(self, config: dict):

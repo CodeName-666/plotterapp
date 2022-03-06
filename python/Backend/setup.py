@@ -30,7 +30,7 @@ class Setup(Converter):
     @backend_setup_done.setter
     def backend_setup_done(self, status: bool):
         if(self.backend_setup_done != status):
-            logger.info("Backend Setup Status: {}".format(status))
+            logger.log_info("Backend Setup Status: {}".format(status))
             self.__backend_setup_done = status
             self.backend_setup_done_changed.emit(status)
 
@@ -44,7 +44,7 @@ class Setup(Converter):
     @ui_setup_done.setter
     def ui_setup_done(self, status: bool):
         if(self.ui_setup_done != status):
-            logger.info("UI Setup Status: {}".format(status))
+            logger.log_info("UI Setup Status: {}".format(status))
             self.__ui_setup_done = status
             self.ui_setup_done_changed.emit(status)
 
@@ -54,9 +54,9 @@ class Setup(Converter):
                 js_config = self.dict_to_jsvalue(self.ui_config)
                 self.ui_setup.emit(self.ui_config)
             else:
-                logger.info("UI already configured")
+                logger.log_info("UI already configured")
         else:
-            logger.error("Cannot setup ui. Backend not configured")
+            logger.log_error("Cannot setup ui. Backend not configured")
 
     @property
     def ui_config(self) -> dict:

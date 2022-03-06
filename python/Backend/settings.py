@@ -25,7 +25,7 @@ class Settings(QObject):
     def interface(self,new_interface: str):
         if self.interface != new_interface:
             self.__interface = new_interface
-            logger.debug("New Interface: {}".format(new_interface))
+            logger.log_debug("New Interface: {}".format(new_interface))
             self.new_interface.emit(new_interface)
 
     @Property('QJSValue', notify= new_settings)
@@ -39,7 +39,7 @@ class Settings(QObject):
     def settings(self,new_settings: QJSValue):
         if self.settings != new_settings:
             self.__settings = new_settings
-            logger.debug("New Settings: ")
+            logger.log_debug("New Settings: ")
             self.new_settings.emit(new_settings)
 
     @Slot('QString','QJSValue', result='bool')
