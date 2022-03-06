@@ -61,8 +61,3 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
 
     def config(self, config: dict):
         Setup.ui_config = config["qml"]
-
-    @Slot(QJsonValue)
-    def testSlot(self, object):
-        l = object
-        print(l)

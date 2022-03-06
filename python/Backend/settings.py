@@ -1,5 +1,6 @@
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject, Slot, Signal, QTimer
+from hashlib import new
+from PySide2.QtCore import QObject, Slot, Signal, Property, QTimer
 from PySide2.QtQml import QJSValue
 from Logger import logger
 import typing
@@ -7,30 +8,44 @@ import typing
 
 class Settings(QObject):
 
+    new_interface = Signal(str)
+    new_settings = Signal(QJSValue)
+
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
         super(Settings, self).__init__()
 
-    @Slot('QJSValue', result='bool')
-    def set_settings(self, settings: QJSValue) -> bool:
-        if settings.hasProperty("type"):
-            ok = False
-            for r in self.receiver_list.values():
-                logger.info("Receiver: {} == {}".format(
-                    r.type.name, settings.property("type").toString()))
-                if r.type.name == settings.property("type").toString():
-                    r.update_settings(settings)
-                    ok = True
-                    break
-            if ok:
-                logger.info("Settings Updated")
-                return True
-            else:
-                logger.warning("Correct Receiver not found")
-                return False
-        else:
-            logger.error("Config parameter TYPE not found")
-            return False
+    @Property('str', notify= new_interface)
+    def interface(self) -> str:
+        try:
+            return self.__interface
+        except Exception:
+            return ""
 
+    @interface.setter
+    def interface(self,new_interface: str):
+        if self.__interface != new_interface:
+            self.__interface = new_interface
+            self.new_interface.emit(new_interface)
+
+    @Property('QJSValue', notify= new_settings)
+    def settings(self) -> QJSValue:
+        try: 
+            return self.__settings
+        except Exception:
+            return QJSValue()
+    
+    @settings.setter
+    def settings(self,new_settings: QJSValue):
+        if self.__settings != new_settings:
+            self.__settings = new_settings
+            self.new_settings.emit(new_settings)
+
+    @Slot('str','QJSValue', result='bool')
+    def set_settings(self, interface: str, settings: QJSValue) -> bool:
+        self.interface = interface
+        self.settings = settings
+        
+  
     @Slot('str', result='bool')
     def settings_valid(self, connection_type: str) -> bool:
         if connection_type in self.receiver_list.keys():
