@@ -4,19 +4,19 @@ from PySide2.QtCore import QObject, Slot, Property
 import typing
 
 
-def warning(msg, *args, **kwargs):
+def log_warning(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('WARN', msg, *args, **kwargs)
 
 
-def info(msg, *args, **kwargs):
+def log_info(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('INFO', msg, *args, **kwargs)
 
 
-def error(msg, *args, **kwargs):
+def log_error(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('ERROR', msg, *args, **kwargs)
 
 
-def debug(msg, *args, **kwargs):
+def log_debug(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('DEBUG', msg, *args, **kwargs)
 
 
@@ -40,7 +40,7 @@ class Logger():
     def enabled(self):
         try:
             return self.__enabled
-        except:
+        except Exception:
             return False
 
     @enabled.setter
@@ -51,7 +51,7 @@ class Logger():
     def console_log(self):
         try:
             return self.__console_log
-        except:
+        except Exception:
             return False
 
     @console_log.setter
@@ -124,5 +124,5 @@ if __name__ == "__main__":
     x = Logger()
     x.config(config)
 
-    warning("test 1,2,3")
-    debug("laösdjflas")
+    log_warning("test 1,2,3")
+    log_debug("laösdjflas")

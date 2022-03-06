@@ -32,7 +32,7 @@ class SerialPort():
     def com_ports(self):
         try:
             return self.__com_list
-        except:
+        except Exception:
             return None
 
     @com_ports.setter

@@ -32,7 +32,6 @@ class Plotter(QObject):
 
     def load_app(self):
         self.__engine.load(abspath(self.__qmlFile))
-        # self.__backend.ui_setup.emit(self.__backend.ui_config)
 
     def run(self) -> int:
         return self.__app.exec_()

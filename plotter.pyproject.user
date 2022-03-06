@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 6.0.2, 2022-03-06T16:39:44. -->
+<!-- Written by QtCreator 6.0.2, 2022-03-06T23:22:57. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -169,29 +169,13 @@
     <value type="bool" key="Analyzer.Perf.Settings.UseGlobalSettings">true</value>
     <value type="bool" key="Analyzer.QmlProfiler.Settings.UseGlobalSettings">true</value>
     <value type="bool" key="Analyzer.Valgrind.Settings.UseGlobalSettings">true</value>
-    <valuelist type="QVariantList" key="Analyzer.Valgrind.VisibleErrorKinds">
-     <value type="QString">0</value>
-     <value type="QString">1</value>
-     <value type="QString">2</value>
-     <value type="QString">3</value>
-     <value type="QString">4</value>
-     <value type="QString">5</value>
-     <value type="QString">6</value>
-     <value type="QString">7</value>
-     <value type="QString">8</value>
-     <value type="QString">9</value>
-     <value type="QString">10</value>
-     <value type="QString">11</value>
-     <value type="QString">12</value>
-     <value type="QString">13</value>
-     <value type="QString">14</value>
-    </valuelist>
     <valuelist type="QVariantList" key="CustomOutputParsers"/>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">D:/Projekte/Python/Plotter/App/python/Backend/setup.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.D:/Projekte/Python/Plotter/App/python/Backend/setup.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">D:/Projekte/Python/Plotter/App/python/Backend/setup.py</value>
+    <value type="QString" key="PythonEditor.RunConfiguation.Interpreter">{435565fd-ffc0-4a33-8f69-1ff67a492302}</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">D:\Projekte\Python\Plotter\App\python\Backend\setup.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>

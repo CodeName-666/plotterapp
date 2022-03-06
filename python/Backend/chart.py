@@ -39,7 +39,7 @@ class Chart(ChartSignals):
     def plot_area(self) -> QRectF:
         try:
             return self.__plot_area
-        except:
+        except Exception:
             return QRectF()
 
     @plot_area.setter
@@ -50,7 +50,7 @@ class Chart(ChartSignals):
     def xAxis(self) -> QtCharts.QValueAxis:
         try:
             return self.__xAxis
-        except:
+        except Exception:
             return QtCharts.QValueAxis()
 
     @xAxis.setter
@@ -61,7 +61,7 @@ class Chart(ChartSignals):
     def yAxis(self) -> QtCharts.QValueAxis:
         try:
             return self.__yAxis
-        except:
+        except Exception:
             return QtCharts.QValueAxis()
 
     @yAxis.setter
