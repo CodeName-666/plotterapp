@@ -13,6 +13,7 @@ from Logger import logger
 from Logger.logger import Logger
 from .chart import Chart
 
+
 class Backend(Settings, Logger, SerialPort, Setup, Chart):
 
     __backend_instance = None
@@ -27,8 +28,8 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
             Setup.__init__(self)
             Chart.__init__(self)
             Backend.__backend_instance = self
-            #self.connect_signals()
-    
+            # self.connect_signals()
+
     @staticmethod
     def get_instance():
         if Backend.__backend_instance == None:
@@ -37,7 +38,6 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
 
     def connect_signals(self):
         self.backend_setup_done_changed.connect(self.on_backend_setup_done)
-        
 
     @Slot('str', result='bool')
     def connectTo(self, connection_type: str) -> bool:

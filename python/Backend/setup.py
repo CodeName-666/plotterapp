@@ -9,7 +9,7 @@ from Common.converter import Converter
 
 class Setup(Converter):
 
-    ui_setup = Signal(QJsonValue)
+    ui_setup = Signal(QJSValue)
     ui_setup_done_changed = Signal(bool)
     backend_setup_done_changed = Signal(bool)
 
@@ -19,10 +19,10 @@ class Setup(Converter):
         self.backend_setup_done = False
         self.ui_setup_done = False
         self.backend_setup_done_changed.connect(self.on_backend_setup_done)
-        
+
     @Property(bool)
     def backend_setup_done(self) -> bool:
-        try: 
+        try:
             return self.__backend_setup_done
         except:
             return False
@@ -33,11 +33,10 @@ class Setup(Converter):
             logger.info("Backend Setup Status: {}".format(status))
             self.__backend_setup_done = status
             self.backend_setup_done_changed.emit(status)
-            
 
     @Property(bool)
     def ui_setup_done(self) -> bool:
-        try: 
+        try:
             return self.__ui_setup_done
         except:
             return False
@@ -48,7 +47,7 @@ class Setup(Converter):
             logger.info("UI Setup Status: {}".format(status))
             self.__ui_setup_done = status
             self.ui_setup_done_changed.emit(status)
-    
+
     def on_backend_setup_done(self, status: bool):
         if status:
             if not self.ui_setup_done:
@@ -59,16 +58,13 @@ class Setup(Converter):
         else:
             logger.error("Cannot setup ui. Backend not configured")
 
-
     @property
     def ui_config(self) -> dict:
         try:
             return self.__config
         except:
             return None
-    
+
     @ui_config.setter
     def ui_config(self, new_config: dict):
         self.__config = new_config
-
-

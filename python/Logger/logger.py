@@ -7,19 +7,23 @@ import typing
 def warning(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('WARN', msg, *args, **kwargs)
 
+
 def info(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('INFO', msg, *args, **kwargs)
 
+
 def error(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('ERROR', msg, *args, **kwargs)
+
 
 def debug(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('DEBUG', msg, *args, **kwargs)
 
 
 class Logger():
-    
+
     __instance = None
+
     def __init__(self) -> None:
         if Logger.__instance != None:
             pass
@@ -36,42 +40,42 @@ class Logger():
     def enabled(self):
         try:
             return self.__enabled
-        except: 
+        except:
             return False
 
     @enabled.setter
     def enabled(self, status):
         self.__enabled = status
 
-    @property 
+    @property
     def console_log(self):
         try:
             return self.__console_log
-        except: 
+        except:
             return False
 
     @console_log.setter
     def console_log(self, status):
         self.__console_log = status
-    
 
     def log_message(self, type: str, msg, *args, **kwargs):
-        if self.enabled: 
+        if self.enabled:
             if(type == 'ERROR'):
-                logging.error(msg,*args, **kwargs)
+                logging.error(msg, *args, **kwargs)
             elif(type == 'WARN'):
-                logging.warning(msg,*args, **kwargs)
+                logging.warning(msg, *args, **kwargs)
             elif(type == 'INFO'):
-                logging.info(msg,*args, **kwargs)
+                logging.info(msg, *args, **kwargs)
             elif(type == 'DEBUG'):
-                logging.debug(msg,*args, **kwargs)
+                logging.debug(msg, *args, **kwargs)
             elif(type == 'STACK'):
-                logging.debug(msg,*args, **kwargs)
+                logging.debug(msg, *args, **kwargs)
             else:
-                logging.debug('INVALID LOG_TYPE: '.format(msg),*args, **kwargs)
+                logging.debug('INVALID LOG_TYPE: '.format(
+                    msg), *args, **kwargs)
 
         if self.console_log:
-            print("{oType} - {oMsg}".format(oType=type, oMsg = msg))
+            print("{oType} - {oMsg}".format(oType=type, oMsg=msg))
 
     def log_qml_message(self, type: str, msg, *args, **kwargs):
         self.log_message(type, 'QML - {}'.format(msg), *args, **kwargs)
@@ -81,22 +85,22 @@ class Logger():
 
     @Slot(str)
     def log_error(self, msg: str):
-        Logger.get_instance().log_qml_message('ERROR',msg)
+        Logger.get_instance().log_qml_message('ERROR', msg)
 
     @Slot(str)
     def log_warning(self, msg: str):
-        Logger.get_instance().log_qml_message('WARN',msg)
+        Logger.get_instance().log_qml_message('WARN', msg)
 
     @Slot(str)
     def log_info(self, msg: str):
-        Logger.get_instance().log_qml_message('INFO',msg)
+        Logger.get_instance().log_qml_message('INFO', msg)
 
     @Slot(str)
     def log_debug(self, msg: str):
-        Logger.get_instance().log_qml_message('DEBUG',msg)
-    
+        Logger.get_instance().log_qml_message('DEBUG', msg)
+
     @Slot(str)
-    def log_qml_stack(self,stack_info): 
+    def log_qml_stack(self, stack_info):
         self.log_message("STACK", 'QML Stack - {}'.format(stack_info))
 
     def config(self, config: dict) -> None:
@@ -107,15 +111,13 @@ class Logger():
 
         if self.enabled:
             logging.basicConfig(filename=name,
-                        format='%(asctime)s: %(levelname)s - %(message)s', level=log_level)
-
-    
+                                format='%(asctime)s: %(levelname)s - %(message)s', level=log_level)
 
 
 if __name__ == "__main__":
     config = {
         "enabled": 1,
-        "name" : "logfile.log",
+        "name": "logfile.log",
         "level": "DEBUG"
     }
 
@@ -124,7 +126,3 @@ if __name__ == "__main__":
 
     warning("test 1,2,3")
     debug("laösdjflas")
-    
-
-
-    

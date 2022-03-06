@@ -8,15 +8,15 @@ import typing
 class Settings(QObject):
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
-        super(Settings,self).__init__()
-
+        super(Settings, self).__init__()
 
     @Slot('QJSValue', result='bool')
     def set_settings(self, settings: QJSValue) -> bool:
         if settings.hasProperty("type"):
             ok = False
             for r in self.receiver_list.values():
-                logger.info("Receiver: {} == {}".format(r.type.name, settings.property("type").toString()))
+                logger.info("Receiver: {} == {}".format(
+                    r.type.name, settings.property("type").toString()))
                 if r.type.name == settings.property("type").toString():
                     r.update_settings(settings)
                     ok = True
@@ -30,7 +30,6 @@ class Settings(QObject):
         else:
             logger.error("Config parameter TYPE not found")
             return False
-
 
     @Slot('str', result='bool')
     def settings_valid(self, connection_type: str) -> bool:

@@ -7,13 +7,14 @@ from PySide2.QtQml import QJSValue
 from PySide2.QtCore import QObject, Slot, Signal, QTimer
 from Logger import logger
 
-def get_serial_ports(): 
+
+def get_serial_ports():
     ports = list_ports.comports()
     return [port.name for port in ports]
 
 
 class SerialPort():
-    
+
     comPortUpdate = Signal(dict)
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
@@ -22,7 +23,6 @@ class SerialPort():
         self.__serial = serial.Serial()
 
         self.__init_update_timer()
-    
 
     def __init_update_timer(self):
         self.__com_updater_timer.timeout.connect(self.com_updater_cbk)
@@ -45,9 +45,9 @@ class SerialPort():
             logger.info("New Comports found {}".format(new_com_list))
             self.comPortUpdate.emit(new_com_list)
             self.com_ports = new_com_list
-   
+
     # Obsolete Method
-    #def create_com_list():
+    # def create_com_list():
     #    com_port_list = []
     #    available_com_ports = SerialConfig.serial_ports()
     #    for k in available_com_ports:
@@ -62,19 +62,16 @@ class SerialPort():
     #    return com_port_list
 
 
-
-
 if __name__ == "__main__":
-    
+
     @Slot(dict)
     def rxPortList(portList):
         print(portList)
 
-    app = QApplication([]) # Start an application.
-    window = QWidget() # Create a window.
+    app = QApplication([])  # Start an application.
+    window = QWidget()  # Create a window.
 
     serial = SerialPort(None)
     serial.comPortUpdate.connect(rxPortList)
-    window.show() # Show window
-    app.exec_() # Execute the App
-   
+    window.show()  # Show window
+    app.exec_()  # Execute the App
