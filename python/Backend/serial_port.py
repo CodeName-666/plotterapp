@@ -15,7 +15,7 @@ def get_serial_ports():
 
 class SerialPort():
 
-    comPortUpdate = Signal(dict)
+    com_port_update = Signal('QVariant')
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
         self.__com_updater_timer = QTimer()
@@ -43,7 +43,7 @@ class SerialPort():
         new_com_list = get_serial_ports()
         if new_com_list != self.com_ports:
             logger.info("New Comports found {}".format(new_com_list))
-            self.comPortUpdate.emit(new_com_list)
+            self.com_port_update.emit(new_com_list)
             self.com_ports = new_com_list
 
     # Obsolete Method
@@ -72,6 +72,6 @@ if __name__ == "__main__":
     window = QWidget()  # Create a window.
 
     serial = SerialPort(None)
-    serial.comPortUpdate.connect(rxPortList)
+    serial.com_port_update.connect(rxPortList)
     window.show()  # Show window
     app.exec_()  # Execute the App
