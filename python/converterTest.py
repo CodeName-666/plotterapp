@@ -1,7 +1,7 @@
 
 from Common.converter import Converter
 
-from PySide2.QtQml import QJSValue
+from PySide6.QtQml import QJSValue
 
 
 

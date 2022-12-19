@@ -1,5 +1,5 @@
 # This Python file uses the following encoding: utf-8
-from PySide2 import QtCore
+from PySide6 import QtCore
 from enum import Enum
 
 

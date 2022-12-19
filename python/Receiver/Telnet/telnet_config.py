@@ -1,4 +1,4 @@
-from PySide2.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal
 
 class TelnetConfig(QObject):
 

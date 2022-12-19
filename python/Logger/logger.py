@@ -1,6 +1,6 @@
 import logging
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject, Slot, Property
+from PySide6.QtCore import QObject, Slot, Property
 import typing
 
 
