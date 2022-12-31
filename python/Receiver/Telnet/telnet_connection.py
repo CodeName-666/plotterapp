@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from telnetlib import Telnet
 from Receiver.receiver import Receiver, ConnectionType
-from PySide2.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal
 from .telnet_config import TelnetConfig
 
 

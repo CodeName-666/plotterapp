@@ -2,9 +2,9 @@ from distutils.log import Log
 import typing
 import serial
 from serial.tools import list_ports
-from PySide2.QtWidgets import QApplication, QWidget
-from PySide2.QtQml import QJSValue
-from PySide2.QtCore import QObject, Slot, Signal, QTimer
+from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtQml import QJSValue
+from PySide6.QtCore import QObject, Slot, Signal, QTimer
 from Logger import logger
 
 

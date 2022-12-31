@@ -1,7 +1,7 @@
 
 # This Python file uses the following encoding: utf-8
-from PySide2.QtCore import QObject ,Slot, Signal, QTimer, Property,QJsonArray
-from PySide2.QtQml import QJSValue
+from PySide6.QtCore import QObject ,Slot, Signal, QTimer, Property,QJsonArray
+from PySide6.QtQml import QJSValue
 import typing
 from Logger import logger
 from Common.converter import Converter

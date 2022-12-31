@@ -1,4 +1,4 @@
-from PySide2.QtQml import QJSValue
+from PySide6.QtQml import QJSValue
 from Logger import logger
 
 

@@ -1,7 +1,7 @@
 
 import typing
-from PySide2.QtCore import QObject, Slot, Signal, Property, QTimer, QRectF
-from PySide2.QtCharts import QtCharts
+from PySide6.QtCore import QObject, Slot, Signal, Property, QTimer, QRectF
+from PySide6 import QtCharts
 
 
 class ChartSignals:

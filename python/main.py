@@ -6,8 +6,8 @@ import json
 import logging
 from os.path import abspath, dirname, join
 
-from PySide2.QtQml import QQmlDebuggingEnabler
-from PySide2.QtCore import QObject, Slot
+from PySide6.QtQml import QQmlDebuggingEnabler
+from PySide6.QtCore import QObject, Slot
 
 from Plotter.plotter import Plotter
 from Backend.backend import Backend

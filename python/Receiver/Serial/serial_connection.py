@@ -8,7 +8,7 @@ import serial
 import serial.tools.list_ports
 from Receiver.receiver import Receiver, ConnectionType
 from Receiver.Serial.serial_config import SerialConfig
-from PySide2.QtCore import QObject, Slot, Signal, QTimer
+from PySide6.QtCore import QObject, Slot, Signal, QTimer
 
 
 class SerialConnection(Receiver):
