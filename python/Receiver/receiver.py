@@ -9,18 +9,24 @@ class ConnectionType(Enum):
     NONE = 3
 
 
-class Receiver(QtCore.QThread):
-    def __init__(self, receiver_type: ConnectionType, receiver_settings=None):
-        self.config = receiver_settings
-        self.type = receiver_type
+class Receiver:
+    def __init__(self, receiver_thread):
+        self.receiver_thread = receiver_thread
+        self.data = []
+        self.receiver_thread.parent = self
+        self.receiver_thread.start()
 
-    @property
-    def type(self) -> ConnectionType:
-        return self.__type
+    def get_data(self):
+        return self.data
 
-    @type.setter
-    def type(self, type: ConnectionType):
-        self.__type = type
+    def send_response(self, response):
+        self.receiver_thread.send_response(response)
+
+    def stop(self):
+        self.receiver_thread.stop()
+
+    def join(self):
+        self.receiver_thread.join()
 
     def open_connection(self):
         pass
