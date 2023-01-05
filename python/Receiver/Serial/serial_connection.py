@@ -8,16 +8,29 @@ import serial
 import serial.tools.list_ports
 from Receiver.receiver import Receiver, ConnectionType
 from Receiver.Serial.serial_config import SerialConfig
-from PySide6.QtCore import QObject, Slot, Signal, QTimer
+from PySide6.QtCore import QObject, Slot, Signal, QTimer, QThread
 
 
-class SerialConnection(Receiver):
-    def __init__(self, default_config: dict = None):
-        Receiver.__init__(self, ConnectionType.SERIAL)
-        self.__serial = serial.Serial()
-        self.__config = None
-        
-        self.setup(default_config)
+class SerialReceiverThread(QThread):
+    def __init__(self, port, baudrate):
+        QThread.__init__(self)
+        self.port = port
+        self.baudrate = baudrate
+        self.serial = serial.Serial(self.port, self.baudrate)
+        self.stop_event = threading.Event()
+
+    def run(self):
+        while not self.stop_event.is_set():
+            data = self.serial.readline()
+            self.parent.data.append(data)
+
+    def send_response(self, response):
+        self.serial.write(response)
+
+    def stop(self):
+        self.stop_event.set()
+        self.serial.close()
+
     
        
     def open_connection(self):

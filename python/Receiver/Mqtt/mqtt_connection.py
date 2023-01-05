@@ -1,11 +1,11 @@
 
-from PySide6 import QtCore
+from PySide6.QtCore import QThread
 import paho.mqtt.client as mqtt
 
 
-class MQTTReceiverThread(QtCore.QThread):
+class MQTTReceiverThread(QThread):
     def __init__(self, host, port, rx_topic, tx_topic):
-        QtCore.QThread.__init__(self)
+        QThread.__init__(self)
         self.host = host
         self.port = port
         self.rx_topic = rx_topic

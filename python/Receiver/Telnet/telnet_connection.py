@@ -1,16 +1,33 @@
 # This Python file uses the following encoding: utf-8
 from telnetlib import Telnet
-from Receiver.receiver import Receiver, ConnectionType
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal,QThread
 from .telnet_config import TelnetConfig
 
 
-class TelnetConnection(Receiver):
+class TelnetConnection(QThread):
     def __init__(self, config: dict = None):
-        Receiver.__init__(self, ConnectionType.TELNET)
-        self.telnet = Telnet()
-        self.__config = None
-        self.setup(config)
+        QThread.__init__(self)
+        self.telnet = Telnet()     
+       #self.stop_event = threading.Event()
+
+    def run(self):
+        while not self.stop_event.is_set():
+            data = self.telnet.read_all()
+            self.parent.data.append(data)
+
+    def send_response(self, response):
+        self.telnet.write(response)
+        
+
+    def stop(self):
+        self.stop_event.set()
+        self.telnet.close()
+
+
+
+
+
+
 
     def open_connection(self):
         self.telnet.open(self.settings["host"], self.settings["port"])
