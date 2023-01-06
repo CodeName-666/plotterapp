@@ -4,7 +4,7 @@ from PySide6.QtCore import QObject, Slot, Signal,QThread
 from .telnet_config import TelnetConfig
 
 
-class TelnetConnection(QThread):
+class TelnetClientConnection(QThread):
     def __init__(self, config: dict = None):
         QThread.__init__(self)
         self.telnet = Telnet()     

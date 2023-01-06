@@ -17,7 +17,7 @@ class SerialReceiverThread(QThread):
         self.port = port
         self.baudrate = baudrate
         self.serial = serial.Serial(self.port, self.baudrate)
-        self.stop_event = threading.Event()
+        #self.stop_event = threading.Event()
 
     def run(self):
         while not self.stop_event.is_set():
