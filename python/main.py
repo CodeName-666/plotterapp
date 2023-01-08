@@ -11,6 +11,7 @@ from PySide6.QtCore import QObject, Slot
 
 from Plotter.plotter import Plotter
 from Backend.backend import Backend
+from Receiver.receiver import Receiver
 from Logger.logger import Logger
 from Receiver.Serial.serial_connection import SerialConnection
 from Receiver.Telnet.telnet_connection import TelnetConnection
@@ -63,10 +64,14 @@ if __name__ == "__main__":
 
     plotter = Plotter(sys.argv, json_config)
     backend = Backend()
+    receiver = Receiver()
 
     backend.config(json_config)
+    receiver.config(json_config)
 
     plotter.set_backend(backend)
+    plotter.set_reveiver(receiver)
+
     plotter.load_app()
 
     if not plotter.rootObjects():

@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from PySide6.QtCore import Slot
 from enum import Enum
+from typing import Dict
 from receiver_thread import ReceiverThread
 
 
@@ -45,6 +46,9 @@ class Receiver:
         pass
 
     def connected(self) -> bool:
+        pass
+
+    def config(self, config: Dict): 
         pass
 
     def settings_valid(self) -> bool:

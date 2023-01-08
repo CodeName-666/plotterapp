@@ -8,3 +8,5 @@ class ReceiverThread(QThread):
 
     def __init__(self, parent: Optional[PySide6.QtCore.QObject] = ...) -> None:
         super().__init__(parent)
+        self.stop: bool = False
+        self.pause: bool = False

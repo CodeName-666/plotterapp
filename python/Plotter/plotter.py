@@ -3,6 +3,7 @@ import imp
 import typing
 from os.path import abspath, dirname, join
 from Backend.backend import Backend
+from Receiver.receiver import Receiver
 from Logger import logger
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
@@ -24,11 +25,15 @@ class Plotter(QObject):
         # of the QML file, to load it.
         self.__qmlFile = join(dirname(__file__), '../../qml/main.qml')
 
-        self.__backend = None
+        self.__backend: Backend = None
+        self.__receiver: Receiver = None
 
     def set_backend(self, backend: Backend):
         self.__backend = backend
         self.__context.setContextProperty("Backend", backend)
+
+    def set_reveiver(self, receiver: Receiver):
+        self.__receiver = receiver
 
     def load_app(self):
         self.__engine.load(abspath(self.__qmlFile))
