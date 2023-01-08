@@ -25,7 +25,7 @@ class Receiver:
 
     def stop(self):
         if self.receiver_thread:
-            self.receiver_thread.stop()
+            self.receiver_thread._stop()
         else: 
             pass
 

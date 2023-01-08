@@ -9,7 +9,7 @@ from receiver_thread import ReceiverThread
 class TelnetClientConnection(ReceiverThread):
     def __init__(self, config: dict = None):
         ReceiverThread.__init__(self)
-        self.telnet = Telnet()     
+        self.__telnet = Telnet()     
        #self.stop_event = threading.Event()
 
     def init(self, config: Dict):
@@ -17,26 +17,26 @@ class TelnetClientConnection(ReceiverThread):
 
     def run(self):
         while not self.stop_event.is_set():
-            data = self.telnet.read_all()
+            data = self.__telnet.read_all()
             self.parent.data.append(data)
 
     def send_response(self, response):
-        self.telnet.write(response)
+        self.__telnet.write(response)
         
 
     def stop(self):
         self.stop_event.set()
-        self.telnet.close()
+        self.__telnet.close()
 
     def conect(self):
-        self.telnet.open(self.settings["host"], self.settings["port"])
+        self.__telnet.open(self.settings["host"], self.settings["port"])
 
     def disconnect(self):
-        self.telnet.close()
+        self.__telnet.close()
 
     def connected(self):
         pass
 
-    def setup(self, config: dict):
+    def config(self, config: dict):
         self.__config = TelnetConfig(config)
 

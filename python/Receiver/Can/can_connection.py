@@ -1,6 +1,6 @@
 import can
 from receiver_thread import ReceiverThread
-
+from typing import Dict
 
 class CANReceiverThread(ReceiverThread):
     def __init__(self, channel, bustype):
@@ -9,9 +9,10 @@ class CANReceiverThread(ReceiverThread):
         #self.stop_event = threading.Event()
 
     def run(self):
-        while not self.stop_event.is_set():
-            message = self.bus.recv()
-            self.parent.data.append(message)
+        while not self._stop:
+            if not self._pause:
+                message = self.bus.recv()
+                self.parent.data.append(message)
 
     def send_response(self, response):
         self.bus.send(response)
@@ -26,4 +27,7 @@ class CANReceiverThread(ReceiverThread):
         pass
 
     def connected(self):
+        pass
+
+    def config(self, config: Dict):
         pass

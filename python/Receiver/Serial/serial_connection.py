@@ -3,7 +3,7 @@ import sys
 import glob
 import logging
 
-from typing import List
+from typing import List, Dict
 import serial
 import serial.tools.list_ports
 from Receiver.Serial.serial_config import SerialConfig
@@ -19,9 +19,12 @@ class SerialReceiverThread(ReceiverThread):
         #self.stop_event = threading.Event()
 
     def run(self):
-        while not self.stop_event.is_set():
-            data = self.serial.readline()
-            self.parent.data.append(data)
+        while not self._stop:
+            if not self._pause:
+                data = self.serial.readline()
+                self.parent.data.append(data)
+            else:
+                pass
 
     def send_response(self, response):
         self.serial.write(response)
@@ -43,7 +46,7 @@ class SerialReceiverThread(ReceiverThread):
     def connected(self):
         return self.__serial.isOpen()
 
-    def setup(self, config: dict):
+    def config(self, config: Dict):
         self.__config = SerialConfig(config)
 
 

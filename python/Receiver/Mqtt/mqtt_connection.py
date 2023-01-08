@@ -1,6 +1,7 @@
 
 from receiver_thread import ReceiverThread
 import paho.mqtt.client as mqtt
+from typing import Dict
 
 
 class MQTTReceiverThread(ReceiverThread):
@@ -25,7 +26,10 @@ class MQTTReceiverThread(ReceiverThread):
         self.client.subscribe(self.rx_topic)
 
     def on_message(self, client, userdata, msg):
-        self.parent.data.append(msg.payload.decode())
+        if not self._pause:
+            self.parent.data.append(msg.payload.decode())
+        else:
+            pass
 
     def send_response(self, response):
         self.client.publish(self.tx_topic, response)
@@ -41,4 +45,7 @@ class MQTTReceiverThread(ReceiverThread):
         pass
 
     def connected(self): 
+        pass
+
+    def config(self, config: Dict):
         pass
