@@ -1,11 +1,11 @@
 
-from PySide6.QtCore import QThread
+from receiver_thread import ReceiverThread
 import paho.mqtt.client as mqtt
 
 
-class MQTTReceiverThread(QThread):
+class MQTTReceiverThread(ReceiverThread):
     def __init__(self, host, port, rx_topic, tx_topic):
-        QThread.__init__(self)
+        ReceiverThread.__init__(self)
         self.host = host
         self.port = port
         self.rx_topic = rx_topic
@@ -33,3 +33,12 @@ class MQTTReceiverThread(QThread):
     def stop(self):
         self.stop_event.set()
         self.client.disconnect()
+    
+    def connect(self):
+        pass
+
+    def disconnect(self):
+        pass
+
+    def connected(self): 
+        pass

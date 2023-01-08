@@ -1,10 +1,10 @@
 import can
-from PySide6.QtCore import QThread
+from receiver_thread import ReceiverThread
 
 
-class CANReceiverThread(QThread):
+class CANReceiverThread(ReceiverThread):
     def __init__(self, channel, bustype):
-        QThread.__init__(self)
+        ReceiverThread.__init__(self)
         self.bus = can.interface.Bus(channel=channel, bustype=bustype)
         #self.stop_event = threading.Event()
 
@@ -18,3 +18,12 @@ class CANReceiverThread(QThread):
 
     def stop(self):
         self.stop_event.set()
+
+    def connect(self):
+        pass
+
+    def disconnect(self):
+        pass
+
+    def connected(self):
+        pass

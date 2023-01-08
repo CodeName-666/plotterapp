@@ -1,40 +1,50 @@
 # This Python file uses the following encoding: utf-8
-from PySide6 import QtCore
+from PySide6.QtCore import Slot
 from enum import Enum
-
-
-class ConnectionType(Enum):
-    SERIAL = 1
-    TELNET = 2
-    NONE = 3
+from receiver_thread import ReceiverThread
 
 
 class Receiver:
-    def __init__(self, receiver_thread):
-        self.receiver_thread = receiver_thread
+    def __init__(self, receiver_thread: ReceiverThread = None) -> None:
+        self.receiver_thread: ReceiverThread = receiver_thread
         self.data = []
-        self.receiver_thread.parent = self
-        self.receiver_thread.start()
+  
+    @Slot(bytes)
+    def new_data(self, data: bytes):
+        self.data.append(data)
 
     def get_data(self):
         return self.data
 
     def send_response(self, response):
-        self.receiver_thread.send_response(response)
+        if self.receiver_thread:
+            self.receiver_thread.send_response(response)
+        else: 
+            pass
 
     def stop(self):
-        self.receiver_thread.stop()
+        if self.receiver_thread:
+            self.receiver_thread.stop()
+        else: 
+            pass
+
+    def start(self): 
+        if self.receiver_thread:
+            self.receiver_thread.start()
 
     def join(self):
-        self.receiver_thread.join()
+        if self.receiver_thread:
+            self.receiver_thread.join()
+        else:
+            pass
 
-    def open_connection(self):
+    def connect(self):
         pass
 
-    def close_connection(self):
+    def disconnect(self):
         pass
 
-    def is_connected(self) -> bool:
+    def connected(self) -> bool:
         pass
 
     def settings_valid(self) -> bool:
