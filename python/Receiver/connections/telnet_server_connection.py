@@ -3,11 +3,11 @@
 from typing import Dict
 from receiver_thread import ReceiverThread
 from telnetlib import Telnet
-from .telnet_config import TelnetConfig
+from .config.telnet_config import TelnetConfig
 
 
 
-class TelnetServerConnection(ReceiverThread):
+class TelnetServerThread(ReceiverThread):
 
     def __init__(self) -> None:
         ReceiverThread.__init__(self)

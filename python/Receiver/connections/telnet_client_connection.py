@@ -6,7 +6,7 @@ from receiver_thread import ReceiverThread
 
 
 
-class TelnetClientConnection(ReceiverThread):
+class TelnetClientThread(ReceiverThread):
     def __init__(self, config: dict = None):
         ReceiverThread.__init__(self)
         self.__telnet = Telnet()     
