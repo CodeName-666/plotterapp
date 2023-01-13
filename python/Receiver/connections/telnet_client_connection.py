@@ -6,7 +6,7 @@ from receiver_thread import ReceiverThread
 
 
 
-class TelnetClientThread(ReceiverThread):
+class TelnetClientConnection(ReceiverThread):
     def __init__(self, config: dict = None):
         ReceiverThread.__init__(self)
         self.__telnet = Telnet()     
@@ -18,7 +18,7 @@ class TelnetClientThread(ReceiverThread):
     def run(self):
         while not self.stop_event.is_set():
             data = self.__telnet.read_all()
-            self.parent.data.append(data)
+            self.add_new_data(data)
 
     def send_response(self, response):
         self.__telnet.write(response)

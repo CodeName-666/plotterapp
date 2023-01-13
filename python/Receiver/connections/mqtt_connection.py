@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt
 from typing import Dict
 
 
-class MQTTReceiverThread(ReceiverThread):
+class MqttConnection(ReceiverThread):
     def __init__(self, host, port, rx_topic, tx_topic):
         ReceiverThread.__init__(self)
         self.host = host
@@ -27,7 +27,7 @@ class MQTTReceiverThread(ReceiverThread):
 
     def on_message(self, client, userdata, msg):
         if not self._pause:
-            self.parent.data.append(msg.payload.decode())
+            self.add_new_data(msg.payload.decode())
         else:
             pass
 

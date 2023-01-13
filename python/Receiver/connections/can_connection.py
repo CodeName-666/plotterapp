@@ -2,23 +2,21 @@ import can
 from receiver_thread import ReceiverThread
 from typing import Dict
 
-class CANReceiverThread(ReceiverThread):
+class CanConnection(ReceiverThread):
     def __init__(self, channel, bustype):
         ReceiverThread.__init__(self)
         self.bus = can.interface.Bus(channel=channel, bustype=bustype)
-        #self.stop_event = threading.Event()
+
 
     def run(self):
         while not self._stop:
             if not self._pause:
                 message = self.bus.recv()
-                self.parent.data.append(message)
+                self.add_new_data(message)
 
     def send_response(self, response):
         self.bus.send(response)
 
-    def stop(self):
-        self.stop_event.set()
 
     def connect(self):
         pass

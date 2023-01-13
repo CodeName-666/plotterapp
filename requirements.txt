@@ -1,2 +1,4 @@
 pyserial
 pyside6
+python-can
+paho-mqtt

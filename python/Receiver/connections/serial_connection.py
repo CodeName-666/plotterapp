@@ -10,19 +10,19 @@ from Receiver.Serial.serial_config import SerialConfig
 from receiver_thread import ReceiverThread
 
 
-class SerialReceiverThread(ReceiverThread):
+class SerialConnection(ReceiverThread):
     def __init__(self, port, baudrate):
         ReceiverThread.__init__(self)
         self.port = port
         self.baudrate = baudrate
         self.serial = serial.Serial(self.port, self.baudrate)
-        #self.stop_event = threading.Event()
+        
 
     def run(self):
         while not self._stop:
             if not self._pause:
                 data = self.serial.readline()
-                self.parent.data.append(data)
+                self.add_new_data(data)
             else:
                 pass
 

@@ -7,7 +7,7 @@ from .config.telnet_config import TelnetConfig
 
 
 
-class TelnetServerThread(ReceiverThread):
+class TelnetServerConnection(ReceiverThread):
 
     def __init__(self) -> None:
         ReceiverThread.__init__(self)
