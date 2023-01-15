@@ -16,16 +16,14 @@ class TelnetClientConnection(ReceiverThread):
         pass
 
     def run(self):
-        while not self.stop_event.is_set():
+        while not self.stopped():
             data = self.__telnet.read_all()
             self.new_data.emit(data)
 
     def send_response(self, response):
         self.__telnet.write(response)
-        
-
-    def stop_event(self):
-        self.stop_event.set()
+      
+    def stop(self):
         self.__telnet.close()
 
     def conect(self):

@@ -7,36 +7,32 @@ from typing import Dict
 class MqttConnection(ReceiverThread):
     def __init__(self, host, port, rx_topic, tx_topic):
         ReceiverThread.__init__(self)
-        self.host = host
-        self.port = port
-        self.rx_topic = rx_topic
-        self.tx_topic = tx_topic
+        self.__host = host
+        self.__port = port
+        self.__rx_topic = rx_topic
+        self.__tx_topic = tx_topic
 
-        self.client = mqtt.Client()
-        self.client.on_connect = self.on_connect
-        self.client.on_message = self.on_message
-        #self.stop_event = threading.Event()
+        self.__client = mqtt.Client()
+        self.__client.on_connect = self.on_connect
+        self.__client.on_message = self.on_message
+        
 
     def run(self):
-        self.client.connect(self.host, self.port)
-        self.client.loop_forever()
+        self.__client.connect(self.__host, self.__port)
+        self.__client.loop_forever()
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected with result code " + str(rc))
-        self.client.subscribe(self.rx_topic)
+        self.__client.subscribe(self.__rx_topic)
 
     def on_message(self, client, userdata, msg):
-        if not self._pause:
-            self.new_data.emit(msg.payload.decode())
-        else:
-            pass
+        self.new_data.emit(msg.payload.decode())
 
     def send_response(self, response):
-        self.client.publish(self.tx_topic, response)
+        self.__client.publish(self.__tx_topic, response)
 
-    def stop_event(self):
-        self.stop_event.set()
-        self.client.disconnect()
+    def stop(self):
+        self.__client.disconnect()
     
     def connect(self):
         pass

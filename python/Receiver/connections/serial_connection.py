@@ -19,7 +19,7 @@ class SerialConnection(ReceiverThread):
         
 
     def run(self):
-        while not self.__stop:
+        while not self.stopped():
             if not self._pause:
                 data = self.__serial.readline()
                 self.new_data.emit(data)
@@ -29,7 +29,7 @@ class SerialConnection(ReceiverThread):
     def send_response(self, response):
         self.__serial.write(response)
 
-    def stop_event(self):
+    def stop(self):
         self.__serial.close() 
        
     def connect(self):

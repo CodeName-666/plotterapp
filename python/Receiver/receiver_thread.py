@@ -1,4 +1,4 @@
-from PySide6.QtCore import QThread, Signal, Slot
+from PySide6.QtCore import QThread, Signal, Slot,QObject
 from typing import Optional
 
 
@@ -7,17 +7,18 @@ class ReceiverThread(QThread):
     new_data = Signal(bytes)
     stop_event = Signal()
 
-    def __init__(self, parent: Optional[PySide6.QtCore.QObject] = ...) -> None:
+    def __init__(self, parent: Optional[QObject] = ...) -> None:
         super().__init__(parent)
         self.__stop: bool = False
+        self.stop_event.connect(self.on_stop)
 
-    @Slot()
-    def stop_event(self):
+    def stop(self):
         pass
     
     def stopped(self):
         return self.__stop    
 
-    
+    @Slot()
     def on_stop(self):
         self.__stop = True
+        self.stop()
