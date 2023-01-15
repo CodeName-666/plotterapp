@@ -13,8 +13,6 @@ from Plotter.plotter import Plotter
 from Backend.backend import Backend
 from Receiver.receiver import Receiver
 from Logger.logger import Logger
-from Receiver.Serial.serial_connection import SerialConnection
-from Receiver.Telnet.telnet_connection import TelnetConnection
 
 
 # from style_rc import *

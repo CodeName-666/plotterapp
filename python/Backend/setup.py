@@ -7,43 +7,37 @@ from Logger import logger
 from Common.converter import Converter
 
 
-class Setup(Converter):
+class Setup():
 
     ui_setup = Signal('QVariant')
     ui_setup_done_changed = Signal(bool)
     backend_setup_done_changed = Signal(bool)
 
     def __init__(self) -> None:
-        Converter.__init__(self)
-        self.ui_config = None
-        self.backend_setup_done = False
-        self.ui_setup_done = False
+        self.__config = None
+        self.__ui_setup_done = False
+        self.__backend_setup_done = False
         self.backend_setup_done_changed.connect(self.on_backend_setup_done)
 
     @Property(bool)
     def backend_setup_done(self) -> bool:
-        try:
-            return self.__backend_setup_done
-        except:
-            return False
+        return self.__backend_setup_done 
+        
 
     @backend_setup_done.setter
     def backend_setup_done(self, status: bool):
-        if(self.backend_setup_done != status):
+        if(self.__backend_setup_done != status):
             logger.log_info("Backend Setup Status: {}".format(status))
             self.__backend_setup_done = status
             self.backend_setup_done_changed.emit(status)
 
     @Property('bool')
     def ui_setup_done(self) -> bool:
-        try:
-            return self.__ui_setup_done
-        except:
-            return False
+        return self.__ui_setup_done
 
     @ui_setup_done.setter
     def ui_setup_done(self, status: bool):
-        if(self.ui_setup_done != status):
+        if(self.__ui_setup_done != status):
             logger.log_info("UI Setup Status: {}".format(status))
             self.__ui_setup_done = status
             self.ui_setup_done_changed.emit(status)
@@ -51,7 +45,7 @@ class Setup(Converter):
     def on_backend_setup_done(self, status: bool):
         if status:
             if not self.ui_setup_done:
-                js_config = self.dict_to_jsvalue(self.ui_config)
+                js_config = Converter.dict_to_jsvalue(self.ui_config)
                 self.ui_setup.emit(self.ui_config)
             else:
                 logger.log_info("UI already configured")
@@ -60,11 +54,8 @@ class Setup(Converter):
 
     @property
     def ui_config(self) -> dict:
-        try:
-            return self.__config
-        except:
-            return None
-
+        return self.__config
+            
     @ui_config.setter
     def ui_config(self, new_config: dict):
         self.__config = new_config

@@ -13,31 +13,28 @@ class Settings(QObject):
 
     def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
         super(Settings, self).__init__()
+        self.__settings = QJSValue()
+        self.__interface = ""
 
     @Property(str, notify= new_interface)
     def interface(self) -> str:
-        try:
-            return self.__interface
-        except Exception:
-            return ""
+        return self.__interface
 
     @interface.setter
     def interface(self,new_interface: str):
-        if self.interface != new_interface:
+        if self.__interface != new_interface:
             self.__interface = new_interface
-            logger.log_debug("New Interface: {}".format(new_interface))
             self.new_interface.emit(new_interface)
+            logger.log_debug("New Interface: {}".format(new_interface))
 
     @Property('QJSValue', notify= new_settings)
     def settings(self) -> QJSValue:
-        try: 
-            return self.__settings
-        except Exception:
-            return QJSValue()
+        return self.__settings
+       
     
     @settings.setter
     def settings(self,new_settings: QJSValue):
-        if self.settings != new_settings:
+        if self.__settings != new_settings:
             self.__settings = new_settings
             logger.log_debug("New Settings: ")
             self.new_settings.emit(new_settings)

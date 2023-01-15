@@ -52,3 +52,7 @@ class Plotter(QObject):
 
     def setup(self, config: dict):
         pass
+
+    def connect_signals(self):
+        pass
+    

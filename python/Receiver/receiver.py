@@ -4,7 +4,6 @@ from enum import Enum
 from typing import Dict
 from receiver_thread import ReceiverThread
 
-
 class Receiver:
     def __init__(self, receiver_thread: ReceiverThread = None) -> None:
         self.receiver_thread: ReceiverThread = receiver_thread

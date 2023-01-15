@@ -17,21 +17,31 @@
       }
     },
     {
-      "type": "Telnet",
+      "type": "Telnet Client",
       "default": {
-        "host": "",
-        "port": 0
+        "host": "localhost",
+        "port": 23
       }
     },
     {
-      "type": "Test",
-      "default" : {
-        "name": "none",
-        "color": 0,
-        "type": "SINUS"
-
+      "type": "Telnet Server",
+      "default": {
+        "host": "localhost",
+        "port": 23
+      }
+    },
+    {
+      "type": "MQTT",
+      "default": {
+        "host": "",
+        "port": "",
+        "rx_topic": "",
+        "tx_topic": ""
       }
     }
+
+   
+    
   ],
   "qml": {
     "interfaces": [

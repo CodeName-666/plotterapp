@@ -47,6 +47,8 @@ class SerialPort():
             self.com_ports = new_com_list
 
 
+
+
 if __name__ == "__main__":
 
     @Slot(dict)
