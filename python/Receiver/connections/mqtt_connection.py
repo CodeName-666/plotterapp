@@ -27,14 +27,14 @@ class MqttConnection(ReceiverThread):
 
     def on_message(self, client, userdata, msg):
         if not self._pause:
-            self.add_new_data(msg.payload.decode())
+            self.new_data.emit(msg.payload.decode())
         else:
             pass
 
     def send_response(self, response):
         self.client.publish(self.tx_topic, response)
 
-    def stop(self):
+    def stop_event(self):
         self.stop_event.set()
         self.client.disconnect()
     

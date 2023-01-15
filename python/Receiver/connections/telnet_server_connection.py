@@ -19,7 +19,7 @@ class TelnetServerConnection(ReceiverThread):
     def send_response(self, response):
         pass
 
-    def stop(self):
+    def stop_event(self):
         pass
 
     def connect(self):

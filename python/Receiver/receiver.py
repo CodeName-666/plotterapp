@@ -9,7 +9,11 @@ class Receiver:
     def __init__(self, receiver_thread: ReceiverThread = None) -> None:
         self.receiver_thread: ReceiverThread = receiver_thread
         self.data = []
-  
+
+
+    def connect_signals(self):
+        self.receiver_thread.new_data.connect(self.new_data)
+
     @Slot(bytes)
     def new_data(self, data: bytes):
         self.data.append(data)
@@ -25,7 +29,7 @@ class Receiver:
 
     def stop(self):
         if self.receiver_thread:
-            self.receiver_thread._stop()
+            self.receiver_thread.__stop()
         else: 
             pass
 

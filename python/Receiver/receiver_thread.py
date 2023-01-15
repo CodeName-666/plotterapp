@@ -5,23 +5,19 @@ from typing import Optional
 class ReceiverThread(QThread):
 
     new_data = Signal(bytes)
-    
+    stop_event = Signal()
 
     def __init__(self, parent: Optional[PySide6.QtCore.QObject] = ...) -> None:
         super().__init__(parent)
-        self._stop: bool = False
-        self._data: list = []
-        
-
-    def add_new_data(self, data: bytes):
-        self._data.append(data)
-
-    def get_data(self):
-        return self._data
-
-    def stop(self):
-        self._stop = True
+        self.__stop: bool = False
 
     @Slot()
-    def on_stop(self):
+    def stop_event(self):
         pass
+    
+    def stopped(self):
+        return self.__stop    
+
+    
+    def on_stop(self):
+        self.__stop = True

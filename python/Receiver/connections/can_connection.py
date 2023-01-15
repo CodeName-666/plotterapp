@@ -9,10 +9,10 @@ class CanConnection(ReceiverThread):
 
 
     def run(self):
-        while not self._stop:
+        while not self.__stop:
             if not self._pause:
                 message = self.bus.recv()
-                self.add_new_data(message)
+                self.new_data.emit(message)
 
     def send_response(self, response):
         self.bus.send(response)

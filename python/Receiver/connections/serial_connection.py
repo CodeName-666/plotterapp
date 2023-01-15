@@ -15,23 +15,22 @@ class SerialConnection(ReceiverThread):
         ReceiverThread.__init__(self)
         self.port = port
         self.baudrate = baudrate
-        self.serial = serial.Serial(self.port, self.baudrate)
+        self.__serial = serial.Serial(self.port, self.baudrate)
         
 
     def run(self):
-        while not self._stop:
+        while not self.__stop:
             if not self._pause:
-                data = self.serial.readline()
-                self.add_new_data(data)
+                data = self.__serial.readline()
+                self.new_data.emit(data)
             else:
                 pass
 
     def send_response(self, response):
-        self.serial.write(response)
+        self.__serial.write(response)
 
-    def stop(self):
-        self.stop_event.set()
-        self.serial.close() 
+    def stop_event(self):
+        self.__serial.close() 
        
     def connect(self):
         if self.__serial is not None:
