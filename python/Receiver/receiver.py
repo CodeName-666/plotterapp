@@ -1,8 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from PySide6.QtCore import Slot
 from typing import Dict
-from receiver_thread import ReceiverThread
-
+from .receiver_thread import ReceiverThread
 
 class Receiver:
     def __init__(self, receiver_thread: ReceiverThread = None) -> None:
