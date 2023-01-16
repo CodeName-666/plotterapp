@@ -1,8 +1,8 @@
 # This Python file uses the following encoding: utf-8
 from PySide6.QtCore import Slot
-from enum import Enum
 from typing import Dict
 from receiver_thread import ReceiverThread
+
 
 class Receiver:
     def __init__(self, receiver_thread: ReceiverThread = None) -> None:
@@ -56,3 +56,13 @@ class Receiver:
 
     def settings_valid(self) -> bool:
         pass
+
+
+
+
+
+if __name__ == "__main__":
+    
+    receiver = Receiver()
+    receiver_thread = ReceiverThread()
+    print("Receiver Test")

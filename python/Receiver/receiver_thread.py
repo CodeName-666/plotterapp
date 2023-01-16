@@ -7,8 +7,8 @@ class ReceiverThread(QThread):
     new_data = Signal(bytes)
     stop_event = Signal()
 
-    def __init__(self, parent: Optional[QObject] = ...) -> None:
-        super().__init__(parent)
+    def __init__(self, parent: Optional[QObject] = None) -> None:
+        super(ReceiverThread, self).__init__(parent)
         self.__stop: bool = False
         self.stop_event.connect(self.on_stop)
 

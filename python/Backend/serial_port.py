@@ -1,5 +1,5 @@
 from distutils.log import Log
-import typing
+from typing import Optional
 import serial
 from serial.tools import list_ports
 from PySide6.QtWidgets import QApplication, QWidget
@@ -17,7 +17,7 @@ class SerialPort():
 
     com_port_update = Signal('QVariant')
 
-    def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
+    def __init__(self, parent: Optional[QObject] = None) -> None:
         self.__com_updater_timer = QTimer()
         self.com_ports = []
         self.__serial = serial.Serial()

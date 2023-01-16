@@ -3,7 +3,7 @@ from hashlib import new
 from PySide6.QtCore import QObject, Slot, Signal, Property, QTimer
 from PySide6.QtQml import QJSValue
 from Logger import logger
-import typing
+from typing import Optional
 
 
 class Settings(QObject):
@@ -11,8 +11,8 @@ class Settings(QObject):
     new_interface = Signal(str)
     new_settings = Signal('QJSValue')
 
-    def __init__(self, parent: typing.Optional[QObject] = ...) -> None:
-        super(Settings, self).__init__()
+    def __init__(self, parent: Optional[QObject] = None) -> None:
+        super(Settings, self).__init__(parent)
         self.__settings = QJSValue()
         self.__interface = ""
 
