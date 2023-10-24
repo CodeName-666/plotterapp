@@ -29,8 +29,7 @@ class Settings(QObject):
 
     @Property('QJSValue', notify= new_settings)
     def settings(self) -> QJSValue:
-        return self.__settings
-       
+        return self.__settings       
     
     @settings.setter
     def settings(self,new_settings: QJSValue):
