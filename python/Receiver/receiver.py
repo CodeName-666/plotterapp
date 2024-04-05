@@ -1,35 +1,67 @@
 # This Python file uses the following encoding: utf-8
-from PySide6 import QtCore
-from enum import Enum
+from PySide6.QtCore import Slot
+from typing import Dict
+from .receiver_thread import ReceiverThread
+
+class Receiver:
+    def __init__(self, receiver_thread: ReceiverThread = None) -> None:
+        self.receiver_thread: ReceiverThread = receiver_thread
+        self.data = []
 
 
-class ConnectionType(Enum):
-    SERIAL = 1
-    TELNET = 2
-    NONE = 3
+    def connect_signals(self):
+        self.receiver_thread.new_data.connect(self.new_data)
 
+    @Slot(bytes)
+    def new_data(self, data: bytes):
+        self.data.append(data)
 
-class Receiver(QtCore.QThread):
-    def __init__(self, receiver_type: ConnectionType, receiver_settings=None):
-        self.config = receiver_settings
-        self.type = receiver_type
+    def get_data(self):
+        return self.data
 
-    @property
-    def type(self) -> ConnectionType:
-        return self.__type
+    def send_response(self, response):
+        if self.receiver_thread:
+            self.receiver_thread.send_response(response)
+        else: 
+            pass
 
-    @type.setter
-    def type(self, type: ConnectionType):
-        self.__type = type
+    def stop(self):
+        if self.receiver_thread:
+            self.receiver_thread.__stop()
+        else: 
+            pass
 
-    def open_connection(self):
+    def start(self): 
+        if self.receiver_thread:
+            self.receiver_thread.start()
+
+    def join(self):
+        if self.receiver_thread:
+            self.receiver_thread.join()
+        else:
+            pass
+
+    def connect(self):
         pass
 
-    def close_connection(self):
+    def disconnect(self):
         pass
 
-    def is_connected(self) -> bool:
+    def connected(self) -> bool:
+        pass
+
+    def config(self, config: Dict): 
         pass
 
     def settings_valid(self) -> bool:
         pass
+
+
+
+
+
+if __name__ == "__main__":
+    
+    receiver = Receiver()
+    receiver_thread = ReceiverThread()
+    print("Receiver Test")

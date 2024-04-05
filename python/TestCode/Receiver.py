@@ -52,7 +52,7 @@ class MQTTReceiverThread(threading.Thread):
 
 def main():
     # Create a Receiver object and start the MQTT thread
-    receiver = Receiver(MQTTReceiverThread(host="localhost", port=1883, topic="mytopic"))
+    receiver = Receiver(MQTTReceiverThread(host="broker.hivemq.com", port=1883, topic="ReceiverMqttTopic"))
 
     # Do some other work here, such as processing the received data
     while True:
@@ -60,6 +60,7 @@ def main():
         if data:
             print("Received data:", data)
             receiver.send_response("ACK")
+            
 
     # Stop and exit the MQTT thread when you are done
     receiver.stop()

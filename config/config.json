@@ -17,48 +17,42 @@
       }
     },
     {
-      "type": "Telnet",
+      "type": "Telnet Client",
       "default": {
-        "host": "",
-        "port": 0
+        "host": "localhost",
+        "port": 23
       }
     },
     {
-      "type": "Test",
-      "default" : {
-        "name": "none",
-        "color": 0,
-        "type": "SINUS"
-
+      "type": "Telnet Server",
+      "default": {
+        "host": "localhost",
+        "port": 23
+      }
+    },
+    {
+      "type": "MQTT",
+      "default": {
+        "host": "",
+        "port": "",
+        "rx_topic": "",
+        "tx_topic": ""
       }
     }
+
+   
+    
   ],
   "qml": {
     "interfaces": [
       "Serial",
-      "Telnet",
-      "Test"
-    ],
-    
-    "serial" : {
-       "dataBits" : [
-        {"name": "5Bit", "value": 5},
-        {"name": "6Bit", "value": 6},
-        {"name": "7Bit", "value": 7},
-        {"name": "8Bit", "value": 8}
-      ],
-      "stopBits": [
-        {"name": "1Bit",  "value": 1},
-        {"name": "1.5Bit","value": 1.5},
-        {"name": "2Bit",  "value": 2}
-      ],
-      "parityBits" : [
-        {"name": "None","value": "None"},
-        {"name": "EVEN","value": "EVEN"},
-        {"name": "ODD","value": "ODD"}
-      ]
-    }
+      "Telnet Client",
+      "Telnet Server",
+      "MQTT", 
+      "CAN"
+    ]
   },
+  
   "logging" : {
     "enabled": 1,
     "console_log": 1,
