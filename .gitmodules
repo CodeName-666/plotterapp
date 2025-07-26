@@ -1,0 +1,3 @@
+[submodule "qml"]
+	path = qml
+	url = https://github.com/CodeName-666/plotterui.git
