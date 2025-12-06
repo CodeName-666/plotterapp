@@ -64,6 +64,19 @@ class Receiver(QObject, ABC):
     def receiver_thread(self) -> Optional[ReceiverThread]:
         return self._receiver_thread
 
+    def detach_thread(self) -> None:
+        """Detach the currently assigned worker thread, if any."""
+
+        if self._receiver_thread is None:
+            return
+
+        try:
+            self._receiver_thread.new_data.disconnect(self._on_thread_data)
+        except (TypeError, RuntimeError):
+            pass
+
+        self._receiver_thread = None
+
     @Slot(bytes)
     def _on_thread_data(self, payload: bytes) -> None:
         """Default slot that forwards worker data to backend consumers."""

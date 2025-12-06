@@ -1,3 +1,5 @@
+from typing import Any
+
 from PySide6.QtQml import QJSValue
 from Logger import logger
 
@@ -41,5 +43,23 @@ class Converter():
         print("Key = {} | Value = {} | Type = {}".format(k, v, type(v)))
 
     @staticmethod
-    def jsvalue_to_dict(jsvalue):
-        pass
+    def jsvalue_to_dict(jsvalue: Any):
+        if isinstance(jsvalue, QJSValue):
+            variant = jsvalue.toVariant()
+        else:
+            variant = jsvalue
+
+        return Converter.__convert_variant(variant)
+
+    @staticmethod
+    def __convert_variant(value: Any):
+        if isinstance(value, QJSValue):
+            return Converter.jsvalue_to_dict(value)
+
+        if isinstance(value, dict):
+            return {k: Converter.__convert_variant(v) for k, v in value.items()}
+
+        if isinstance(value, (list, tuple)):
+            return [Converter.__convert_variant(v) for v in value]
+
+        return value

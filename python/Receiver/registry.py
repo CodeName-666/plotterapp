@@ -19,6 +19,9 @@ from typing import Any, Callable, Dict, Iterable, Optional
 from Logger import logger
 
 from .receiver import Receiver
+from .serial_receiver import SerialReceiver
+from .telnet_receiver import TelnetClientReceiver, TelnetServerReceiver
+from .mqtt_receiver import MqttReceiver
 
 
 ReceiverFactory = Callable[[Dict[str, Any]], Optional[Receiver]]
@@ -97,18 +100,18 @@ class ReceiverRegistry:
 
     def _register_placeholder_factories(self) -> None:
         self.register_factory(
-            "Serial", lambda cfg: PlaceholderReceiver(cfg["type"], cfg.get("default", {}))
+            "Serial", lambda cfg: SerialReceiver(cfg.get("default", {}))
         )
         self.register_factory(
             "Telnet Client",
-            lambda cfg: PlaceholderReceiver(cfg["type"], cfg.get("default", {})),
+            lambda cfg: TelnetClientReceiver(cfg.get("default", {})),
         )
         self.register_factory(
             "Telnet Server",
-            lambda cfg: PlaceholderReceiver(cfg["type"], cfg.get("default", {})),
+            lambda cfg: TelnetServerReceiver(cfg.get("default", {})),
         )
         self.register_factory(
-            "MQTT", lambda cfg: PlaceholderReceiver(cfg["type"], cfg.get("default", {}))
+            "MQTT", lambda cfg: MqttReceiver(cfg.get("default", {}))
         )
         self.register_factory(
             "CAN", lambda cfg: PlaceholderReceiver(cfg["type"], cfg.get("default", {}))

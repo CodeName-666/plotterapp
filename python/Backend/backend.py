@@ -6,6 +6,7 @@ from typing import Dict
 
 from Receiver.receiver import Receiver
 from Receiver.registry import ReceiverRegistry, parse_interface_definitions
+from Common.converter import Converter
 
 # Backend interfaces
 from .settings import Settings
@@ -46,23 +47,22 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
 
     @Slot('str', result='bool')
     def connectTo(self, connection_type: str) -> bool:
-        if connection_type in self.receiver_list.keys():
-            if self.receiver_list[connection_type].settings_valid():
-                if not self.receiver_list[connection_type].is_connected():
-                    if self.receiver_list[connection_type].open_connection():
-                        return True
-                    else:
-                        logger.log_error("Cannot open connection, undef error")
-                        return False
-                else:
-                    logger.log_info("Allready Connected")
-                    return False
-            else:
-                logger.log_warning("Invalid settings")
-                return False
-        else:
-            logger.log_error("Invalid Connection type")
+        receiver = self.receiver_list.get(connection_type)
+        if receiver is None:
+            logger.log_error("Invalid Connection type: %s", connection_type)
             return False
+
+        try:
+            receiver.start()
+        except ValueError as exc:
+            logger.log_warning("Receiver settings invalid: %s", exc)
+            return False
+        except ConnectionError as exc:
+            logger.log_error("Unable to open receiver connection: %s", exc)
+            return False
+
+        logger.log_info("Receiver %s started", connection_type)
+        return True
 
     def config(self, config: dict):
         if not config:
@@ -81,3 +81,20 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
             "Backend registered %s receiver(s)",
             len(self.receiver_list.keys()),
         )
+
+    @Slot('QString', 'QJSValue', result='bool')
+    def set_settings(self, interface: str, settings: QJSValue) -> bool:
+        Settings.set_settings(self, interface, settings)
+        receiver = self.receiver_list.get(interface)
+        if receiver is None:
+            logger.log_warning("set_settings: Unknown interface %s", interface)
+            return False
+
+        py_settings = Converter.jsvalue_to_dict(settings)
+        if not isinstance(py_settings, dict):
+            logger.log_warning("set_settings: Cannot convert settings for %s", interface)
+            return False
+
+        receiver.config(py_settings)
+        logger.log_info("Updated settings for %s", interface)
+        return True
