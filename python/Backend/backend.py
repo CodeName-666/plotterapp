@@ -2,7 +2,10 @@
 from PySide6.QtCore import QObject, Slot, Signal, QTimer, QJsonValue
 from PySide6.QtQml import QJSValue
 from PySide6 import QtCharts
+from typing import Dict
+
 from Receiver.receiver import Receiver
+from Receiver.registry import ReceiverRegistry, parse_interface_definitions
 
 # Backend interfaces
 from .settings import Settings
@@ -26,6 +29,9 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
             SerialPort.__init__(self)
             Setup.__init__(self)
             Chart.__init__(self)
+            self.receiver_list: Dict[str, Receiver] = {}
+            self.__receiver_registry = ReceiverRegistry()
+            self.__interfaces_config = {}
             Backend.__backend_instance = self
             # self.connect_signals()
 
@@ -59,4 +65,19 @@ class Backend(Settings, Logger, SerialPort, Setup, Chart):
             return False
 
     def config(self, config: dict):
-        Setup.ui_config = config["qml"]
+        if not config:
+            logger.log_error("Backend configuration missing")
+            return
+
+        Setup.ui_config = config.get("qml", {})
+        self.__interfaces_config = parse_interface_definitions(
+            config.get("interfaces", [])
+        )
+        self.receiver_list = self.__receiver_registry.create_receivers(
+            self.__interfaces_config.values()
+        )
+
+        logger.log_info(
+            "Backend registered %s receiver(s)",
+            len(self.receiver_list.keys()),
+        )

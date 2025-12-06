@@ -1,0 +1,53 @@
+Umbau-Plan Backend/QML
+======================
+
+1. Backend-Interface definieren
+   - Gemeinsame Python-Receiver-Basisklasse entwerfen (start/stop, open_connection, settings_valid, new_data-Signal).
+   - Schnittstellen-Dokumentation erstellen, damit alle Receiver gleiche Methoden/Semantik nutzen.
+   -->DONE
+
+
+2. Receiver-Registry aufbauen
+   - `Backend` um `receiver_list` und Fabrikmethoden erweitern.
+   - Beim Start `config/config.json["interfaces"]` einlesen und passende Receiver-Objekte erzeugen.
+   - Verknüpfung zu Settings-/Logging-Modulen herstellen.
+   -->DONE
+
+3. Serial-Receiver implementieren
+   - PySerial-Anbindung mit COM-Scan, asynchroner Lese-Schleife und Fehler-Handling.
+   - Einstellungen (Port, Baud, Parität …) aus QML übernehmen und validieren.
+   - Datenfluss: Bytes → Parser → Backend-Signal.
+
+4. Telnet-Receiver implementieren
+   - Client/Server-Modus via Python sockets/telnetlib; Reconnect-Strategie definieren.
+   - Settings übernehmen (Host, Port, ggf. Modus) und in Backend registrieren.
+   - Daten aus Telnet-Sitzung an zentrale Verarbeitung weitergeben.
+
+5. MQTT-Receiver implementieren
+   - paho-mqtt Client einrichten, Topics abonnieren, QoS definieren.
+   - Settings (Broker, Port, RX/TX Topics) übernehmen; Verbindung überwachen.
+   - Payload normalisieren (JSON/Binary) und ans Backend reichen.
+
+6. MQTT/CAN Settings-UI ergänzen
+   - In QML dedizierte Formulare (oder erweitertes generisches UI) für alle Parameter schaffen.
+   - Mapping zu Backend-Namen testen (alias → canonical name).
+
+7. Backend ⇄ QML Signalbrücke
+   - `Backend` verbindet Receiver-Signale mit Chart-/UI-Signalen (z. B. `newGraph`, `append_graph_point`, `com_port_update`).
+   - `AppController` expose diese Events Richtung QML (Loader/ChartWindow).
+
+8. Chart-Datenpipeline vervollständigen
+   - `python/Backend/chart.py` ausbauen: Graph-Registrierung, Datenpuffer, Append-Logik, scrollRight.
+   - Verbindung zu QML-Funktionen sicherstellen (create_graph, append_graph).
+
+9. Settings-Synchronisation abschließen
+   - `Settings.qml`/`SettingsUi` ↔ `Backend.set_settings` testen (Backup/Restore, Aliase, Persistenz).
+   - Sicherstellen, dass UI-Konfigurationen in `_storedSettings` landen und beim Komponentenwechsel geladen werden.
+
+10. Fehlerbehandlung & Logging
+    - Einheitliche Logging-Pfade für Verbindung, Validierung, Datenfehler.
+    - UI-Feedback (z. B. Statusanzeige, Toast) für wichtige Ereignisse ergänzen.
+
+11. Tests & Dokumentation
+    - Smoke-Tests je Receiver (Loopback, Testserver, MQTT-Broker).
+    - README/Dev-Doku aktualisieren (Setup, Interfaces erweitern, Datenfluss).
