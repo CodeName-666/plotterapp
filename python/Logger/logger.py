@@ -20,14 +20,13 @@ def log_debug(msg, *args, **kwargs):
     Logger.get_instance().log_pyt_message('DEBUG', msg, *args, **kwargs)
 
 
-class Logger():
+class Logger(QObject):
 
     __instance = None
 
-    def __init__(self) -> None:
-        if Logger.__instance != None:
-            pass
-        else:
+    def __init__(self, parent: typing.Optional[QObject] = None) -> None:
+        super().__init__(parent)
+        if Logger.__instance is None:
             Logger.__instance = self
 
     @staticmethod

@@ -2,15 +2,21 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QObject, Signal, Slot
 
+
+class MetaQObjectABC(type(QObject), ABCMeta):
+    """Metaclass combining PySide's QObject meta type with ABCMeta."""
+
+    pass
+
 from .receiver_thread import ReceiverThread
 
 
-class Receiver(QObject, ABC):
+class Receiver(QObject, metaclass=MetaQObjectABC):
     """Defines the lifecycle contract that every backend receiver must follow.
 
     A receiver encapsulates the transport specific logic that connects to an

@@ -17,17 +17,20 @@ Umbau-Plan Backend/QML
    - PySerial-Anbindung mit COM-Scan, asynchroner Lese-Schleife und Fehler-Handling.
    - Einstellungen (Port, Baud, Parität …) aus QML übernehmen und validieren.
    - Datenfluss: Bytes → Parser → Backend-Signal.
+   --> Done
 
 4. Telnet-Receiver implementieren
    - Client/Server-Modus via Python sockets/telnetlib; Reconnect-Strategie definieren.
    - Settings übernehmen (Host, Port, ggf. Modus) und in Backend registrieren.
    - Daten aus Telnet-Sitzung an zentrale Verarbeitung weitergeben.
+   --> DONE
 
 5. MQTT-Receiver implementieren
    - paho-mqtt Client einrichten, Topics abonnieren, QoS definieren.
    - Settings (Broker, Port, RX/TX Topics) übernehmen; Verbindung überwachen.
    - Payload normalisieren (JSON/Binary) und ans Backend reichen.
-
+   -->DONE
+   
 6. MQTT/CAN Settings-UI ergänzen
    - In QML dedizierte Formulare (oder erweitertes generisches UI) für alle Parameter schaffen.
    - Mapping zu Backend-Namen testen (alias → canonical name).

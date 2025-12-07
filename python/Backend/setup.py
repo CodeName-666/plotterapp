@@ -7,13 +7,14 @@ from Logger import logger
 from Common.converter import Converter
 
 
-class Setup():
+class Setup(QObject):
 
     ui_setup = Signal('QVariant')
     ui_setup_done_changed = Signal(bool)
     backend_setup_done_changed = Signal(bool)
 
-    def __init__(self) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
+        QObject.__init__(self, parent)
         self.__config = None
         self.__ui_setup_done = False
         self.__backend_setup_done = False
