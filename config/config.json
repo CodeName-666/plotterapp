@@ -17,14 +17,7 @@
       }
     },
     {
-      "type": "Telnet Client",
-      "default": {
-        "host": "localhost",
-        "port": 23
-      }
-    },
-    {
-      "type": "Telnet Server",
+      "type": "Telnet",
       "default": {
         "host": "localhost",
         "port": 23
@@ -38,18 +31,25 @@
         "rx_topic": "",
         "tx_topic": ""
       }
+    },
+    {
+      "type": "Test",
+      "default": {
+        "name": "Sinus Test",
+        "color": "#ff4444",
+        "type": "Sinus"
+      }
     }
 
-   
+ 
     
   ],
   "qml": {
     "interfaces": [
       "Serial",
-      "Telnet Client",
-      "Telnet Server",
-      "MQTT", 
-      "CAN"
+      "Telnet",
+      "MQTT",
+      "Test"
     ]
   },
   

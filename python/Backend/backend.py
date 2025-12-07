@@ -182,7 +182,7 @@ class Backend(QObject):
         """Kept for backward compatibility."""
         self.backend_setup_done_changed.connect(self.on_backend_setup_done)
 
-    @Slot("str", result="bool")
+    @Slot(str, result="bool")
     def connectTo(self, connection_type: str) -> bool:
         receiver = self.receiver_list.get(connection_type)
         if receiver is None:
@@ -236,7 +236,7 @@ class Backend(QObject):
         self._notify_status("info", f"Updated settings for {interface}")
         return True
 
-    @Slot("str", result="bool")
+    @Slot(str, result="bool")
     def settings_valid(self, connection_type: str) -> bool:
         if connection_type in self.receiver_list.keys():
             return self.receiver_list[connection_type].settings_valid()
@@ -292,7 +292,7 @@ class Backend(QObject):
     def set_chart(self, chart: QtCharts.QChart) -> None:
         self.__chart = chart
 
-    @Slot(QObject)
+    @Slot(QRectF)
     def set_plot_area(self, area: QRectF) -> None:
         self.plot_area = area
 

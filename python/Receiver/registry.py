@@ -22,6 +22,7 @@ from .receiver import Receiver
 from .serial_receiver import SerialReceiver
 from .telnet_receiver import TelnetClientReceiver, TelnetServerReceiver
 from .mqtt_receiver import MqttReceiver
+from .test_receiver import TestReceiver
 
 
 ReceiverFactory = Callable[[Dict[str, Any]], Optional[Receiver]]
@@ -114,7 +115,10 @@ class ReceiverRegistry:
             "MQTT", lambda cfg: MqttReceiver(cfg.get("default", {}))
         )
         self.register_factory(
-            "CAN", lambda cfg: PlaceholderReceiver(cfg["type"], cfg.get("default", {}))
+            "CAN", lambda cfg: TestReceiver(cfg.get("default", {}))
+        )
+        self.register_factory(
+            "Test", lambda cfg: TestReceiver(cfg.get("default", {}))
         )
 
 

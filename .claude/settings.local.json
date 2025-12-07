@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b \"d:\\Projekte\\Python\\Plotter\\PlotterApp\\qml\")",
+      "Bash(findstr:*)",
+      "Bash(dir /b \"d:\\Projekte\\Python\\Plotter\\PlotterApp\\qml\\content\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
