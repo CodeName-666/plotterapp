@@ -35,9 +35,11 @@
     {
       "type": "Test",
       "default": {
-        "name": "Sinus Test",
+        "name": "Multi Test",
         "color": "#ff4444",
-        "type": "Sinus"
+        "type": "Multi",
+        "use_timestamp": true,
+        "sample_ms": 50
       }
     }
 

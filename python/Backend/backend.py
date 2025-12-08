@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import hashlib
 import json
+import time
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
@@ -12,6 +13,7 @@ from serial.tools import list_ports
 
 from Receiver.receiver import Receiver
 from Receiver.registry import ReceiverRegistry, parse_interface_definitions
+from Receiver.message import PlotDataPoint
 from Common.converter import Converter
 from Logger import logger
 from Logger.logger import Logger
@@ -65,9 +67,10 @@ class Backend(QObject):
         self.__interfaces_config: Dict[str, Any] = {}
         self._backend_events: QObject | None = None
         self._ui_handle: QObject | None = None
-        self._graph_state: Dict[str, Dict[str, Any]] = {}
+        self._graph_state: Dict[str, Dict[str, Any]] = {}  # Key: unique_id (format: "interface_id")
         self._pending_events: Dict[str, List[tuple]] = {}
         self._connected_receivers: set[str] = set()
+        self._app_start_time: float = time.time()  # For timestamp normalization
 
         # Chart helpers
         self.__graph_list: Dict[str, _GraphBuffer] = {}
@@ -326,23 +329,73 @@ class Backend(QObject):
             self._connected_receivers.add(name)
 
     def _on_receiver_data(self, interface: str, payload: bytes) -> None:
-        value = self._extract_numeric_value(interface, payload)
-        if value is None:
+        """Handle incoming data from a receiver.
+
+        Parses the payload into a PlotDataPoint and routes it to the correct graph line.
+        Uses ID-based routing where unique_id = "interface_dataId".
+        """
+        data_point = self._parse_data_point(interface, payload)
+        if data_point is None:
             return
 
-        state = self._graph_state.setdefault(
-            interface, {"color": self._color_from_name(interface), "index": 0, "announced": False}
-        )
+        # Create unique_id from interface and data ID
+        unique_id = f"{interface}_{data_point.id}"
 
+        # Get or create state for this unique_id
+        state = self._graph_state.get(unique_id)
+        if state is None:
+            # New data source discovered - auto-create line
+            color = self._color_from_id(data_point.id)
+            display_name = f"{interface} #{data_point.id}"
+
+            state = {
+                "id": data_point.id,
+                "unique_id": unique_id,
+                "interface": interface,
+                "display_name": display_name,
+                "color": color,
+                "auto_index": 0,
+                "first_timestamp": None,
+                "announced": False
+            }
+            self._graph_state[unique_id] = state
+            logger.log_info(f"Auto-created line: {unique_id} ({display_name})")
+
+        # Announce graph to QML if not yet done
         if not state["announced"]:
-            self._queue_event("newGraph", interface, state["color"])
+            self._queue_event("newGraph", unique_id, state["display_name"], state["color"], interface)
             state["announced"] = True
 
-        point = {"x": state["index"], "y": value}
-        state["index"] += 1
-        self._queue_event("append_graph_point", interface, point)
+        # Calculate X-axis value (normalized timestamp or auto-increment)
+        if data_point.timestamp is not None:
+            # Normalize timestamp to seconds since app start (Option A)
+            if state["first_timestamp"] is None:
+                state["first_timestamp"] = data_point.timestamp
+            x_value = data_point.timestamp - state["first_timestamp"]
+        else:
+            # Use auto-increment when no timestamp provided
+            x_value = state["auto_index"]
+            state["auto_index"] += 1
 
-    def _extract_numeric_value(self, interface: str, payload: bytes) -> float | None:
+        # Send point to QML
+        point = {"x": x_value, "y": data_point.value}
+        self._queue_event("append_graph_point", unique_id, point)
+
+    def _parse_data_point(self, interface: str, payload: bytes) -> PlotDataPoint | None:
+        """Parse received payload into a PlotDataPoint.
+
+        Expected formats:
+        1. JSON: {"id": 0-255, "value": float, "timestamp": float (optional)}
+        2. JSON: {"id": 0-255, "value": float}
+        3. Plain number: float (fallback: id=0, auto-timestamp)
+
+        Args:
+            interface: Name of the interface (for logging)
+            payload: Raw bytes received
+
+        Returns:
+            PlotDataPoint or None if parsing failed
+        """
         if not payload:
             return None
 
@@ -355,36 +408,78 @@ class Backend(QObject):
         if not text:
             return None
 
-        try:
-            return float(text)
-        except ValueError:
-            pass
-
+        # Try to parse as JSON first
         try:
             decoded = json.loads(text)
         except json.JSONDecodeError:
-            self._notify_status("warning", f"{interface}: cannot parse payload '{text[:40]}...'")
-            return None
+            # Fallback: Try as plain number
+            try:
+                value = float(text)
+                # Fallback: id=0, no timestamp (will use auto-increment)
+                return PlotDataPoint(id=0, value=value, timestamp=None)
+            except ValueError:
+                self._notify_status("warning", f"{interface}: cannot parse payload '{text[:40]}...'")
+                return None
 
-        if isinstance(decoded, (int, float)):
-            return float(decoded)
-
+        # Handle JSON object
         if isinstance(decoded, dict):
-            candidate = decoded.get("payload")
-            if isinstance(candidate, (int, float)):
-                return float(candidate)
-            if isinstance(candidate, str):
-                try:
-                    return float(candidate)
-                except ValueError:
-                    self._notify_status("warning", f"{interface}: payload missing numeric value")
-                    return None
+            # Extract required fields
+            data_id = decoded.get("id")
+            value = decoded.get("value")
+            timestamp = decoded.get("timestamp")
 
+            # Validate ID
+            if data_id is None:
+                self._notify_status("warning", f"{interface}: missing 'id' field in JSON")
+                return None
+            if not isinstance(data_id, int) or not 0 <= data_id <= 255:
+                self._notify_status("warning", f"{interface}: 'id' must be integer 0-255, got {data_id}")
+                return None
+
+            # Validate value
+            if value is None:
+                self._notify_status("warning", f"{interface}: missing 'value' field in JSON")
+                return None
+            if not isinstance(value, (int, float)):
+                self._notify_status("warning", f"{interface}: 'value' must be numeric, got {type(value)}")
+                return None
+
+            # Validate timestamp (optional)
+            if timestamp is not None and not isinstance(timestamp, (int, float)):
+                self._notify_status("warning", f"{interface}: 'timestamp' must be numeric or omitted, got {type(timestamp)}")
+                return None
+
+            try:
+                return PlotDataPoint(id=data_id, value=float(value), timestamp=float(timestamp) if timestamp is not None else None)
+            except ValueError as e:
+                self._notify_status("warning", f"{interface}: invalid data point: {e}")
+                return None
+
+        # Handle plain number in JSON
+        if isinstance(decoded, (int, float)):
+            return PlotDataPoint(id=0, value=float(decoded), timestamp=None)
+
+        self._notify_status("warning", f"{interface}: unexpected JSON format")
         return None
 
     def _color_from_name(self, name: str) -> int:
+        """Generate color from name hash (legacy)."""
         digest = hashlib.sha1(name.encode("utf-8")).hexdigest()
         return int(digest[:6], 16)
+
+    def _color_from_id(self, data_id: int) -> int:
+        """Generate color from data ID (0-255).
+
+        Uses a predefined color palette for better visual distinction.
+        """
+        # Color palette (12 distinct colors in hex format)
+        color_palette = [
+            0xe74c3c, 0x3498db, 0x2ecc71, 0xf39c12,
+            0x9b59b6, 0x1abc9c, 0xe67e22, 0x34495e,
+            0xff6b6b, 0x4ecdc4, 0x45b7d1, 0x96ceb4
+        ]
+        # Use modulo to cycle through palette
+        return color_palette[data_id % len(color_palette)]
 
     def _on_ui_setup_signal(self, settings: dict) -> None:
         self._queue_event("ui_setup", settings)

@@ -3,7 +3,10 @@
     "allow": [
       "Bash(dir /s /b \"d:\\Projekte\\Python\\Plotter\\PlotterApp\\qml\")",
       "Bash(findstr:*)",
-      "Bash(dir /b \"d:\\Projekte\\Python\\Plotter\\PlotterApp\\qml\\content\")"
+      "Bash(dir /b \"d:\\Projekte\\Python\\Plotter\\PlotterApp\\qml\\content\")",
+      "Bash(python python/main.py:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
