@@ -318,6 +318,51 @@ class Backend(QObject):
         buffer.series.append(x_val, y_val)
         return True
 
+    @Slot(str, result=bool)
+    def remove_chart_line(self, unique_id: str) -> bool:
+        """Remove a chart line from the backend.
+
+        Args:
+            unique_id: Unique identifier (format: "interface_dataId")
+
+        Returns:
+            True if removed successfully, False otherwise
+        """
+        # Remove from graph state
+        if unique_id in self._graph_state:
+            del self._graph_state[unique_id]
+            logger.log_info(f"Removed chart line from state: {unique_id}")
+
+        # Remove from graph list (series buffer)
+        if unique_id in self.__graph_list:
+            del self.__graph_list[unique_id]
+            logger.log_info(f"Removed chart line series: {unique_id}")
+
+        return True
+
+    @Slot(str, str, str, result=bool)
+    def update_chart_line(self, unique_id: str, display_name: str, color: str) -> bool:
+        """Update properties of an existing chart line.
+
+        Args:
+            unique_id: Unique identifier (format: "interface_dataId")
+            display_name: New display name
+            color: New color (hex string)
+
+        Returns:
+            True if updated successfully, False otherwise
+        """
+        if unique_id not in self._graph_state:
+            logger.log_warning(f"Cannot update - chart line not found: {unique_id}")
+            return False
+
+        # Update state
+        self._graph_state[unique_id]["display_name"] = display_name
+        self._graph_state[unique_id]["color"] = color
+
+        logger.log_info(f"Updated chart line: {unique_id} - Name: {display_name}, Color: {color}")
+        return True
+
     # ------------------------------------------------------------------ #
     # Internal helpers
     # ------------------------------------------------------------------ #
