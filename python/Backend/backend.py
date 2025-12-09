@@ -30,6 +30,18 @@ class _GraphBuffer:
     pending_points: List[Tuple[float, float]] = field(default_factory=list)
 
 
+@dataclass
+class ConnectionInfo:
+    """Information about a single connection instance."""
+    connection_id: str  # Unique ID (e.g., "Serial_COM3_1234567890")
+    interface_type: str  # Interface type (Serial, Telnet, MQTT, Test)
+    display_name: str  # User-friendly name
+    status: str  # "disconnected", "connecting", "connected"
+    settings: Dict[str, Any] = field(default_factory=dict)
+    receiver: Optional[Receiver] = None
+    created_at: float = field(default_factory=time.time)
+
+
 class Backend(QObject):
     """Single QObject-based backend used by QML."""
 
@@ -47,6 +59,10 @@ class Backend(QObject):
     # Serial-port discovery
     com_port_update = Signal("QVariant")
 
+    # Multi-connection management
+    connections_changed = Signal("QVariant")  # Emitted when connection list changes
+    connection_status_changed = Signal(str, str, "QVariant")  # (connection_id, status, details)
+
     def __init__(self) -> None:
         super().__init__()
         if Backend.__backend_instance is not None:
@@ -62,15 +78,19 @@ class Backend(QObject):
         self.__backend_setup_done = False
 
         # Receiver/graph bookkeeping
-        self.receiver_list: Dict[str, Receiver] = {}
         self.__receiver_registry = ReceiverRegistry()
         self.__interfaces_config: Dict[str, Any] = {}
+        self.__default_templates: Dict[str, Dict[str, Any]] = {}  # interface_type -> default settings (templates)
         self._backend_events: QObject | None = None
         self._ui_handle: QObject | None = None
         self._graph_state: Dict[str, Dict[str, Any]] = {}  # Key: unique_id (format: "interface_id")
         self._pending_events: Dict[str, List[tuple]] = {}
-        self._connected_receivers: set[str] = set()
         self._app_start_time: float = time.time()  # For timestamp normalization
+
+        # Multi-connection management (primary system)
+        self.__connections: Dict[str, ConnectionInfo] = {}  # connection_id -> ConnectionInfo
+        self.__connection_counter: int = 0  # Counter for generating unique IDs
+        self.__config_path: str = "config/config.json"
 
         # Chart helpers
         self.__graph_list: Dict[str, _GraphBuffer] = {}
@@ -81,6 +101,19 @@ class Backend(QObject):
         self.__xPoint = 0.0
         self.__scroll_step = 5
 
+        # Performance optimization: Batch updates
+        self._point_buffer: Dict[str, List[Tuple[float, float]]] = {}
+        self._batch_timer = QTimer(self)
+        self._batch_timer.timeout.connect(self._flush_point_buffer)
+        self._batch_timer.start(50)  # Flush every 50ms (20 Hz batch rate)
+        self._batch_size = 10  # Max points per batch before immediate flush
+        self._batch_enabled = True  # Enable batching by default
+
+        # Performance optimization: Downsampling
+        self._downsample_enabled = False  # Disabled by default
+        self._downsample_target_hz = 50.0  # Target display rate
+        self._last_emit_time: Dict[str, float] = {}  # Track last emit time per line
+
         # Serial port polling
         self.__com_updater_timer = QTimer(self)
         self.__com_list: List[str] = []
@@ -90,7 +123,8 @@ class Backend(QObject):
         # Auto-scroll timer for charts
         self.__scroll_timer = QTimer(self)
         self.__scroll_timer.timeout.connect(self._on_scroll_timer)
-        self.__scroll_timer.start(1000)
+        self.__auto_scroll_enabled = False  # Disabled by default for better performance
+        # Don't start timer by default - will be started when enabled
 
         # Signal wiring to forward into QML event bridge
         self.backend_setup_done_changed.connect(self.on_backend_setup_done)
@@ -187,22 +221,18 @@ class Backend(QObject):
 
     @Slot(str, result="bool")
     def connectTo(self, connection_type: str) -> bool:
-        receiver = self.receiver_list.get(connection_type)
-        if receiver is None:
-            self._notify_status("error", f"Invalid connection type: {connection_type}")
-            return False
+        """Legacy method - now forwards to connection-based system.
 
-        try:
-            receiver.start()
-        except ValueError as exc:
-            self._notify_status("warning", f"Receiver settings invalid: {exc}")
-            return False
-        except ConnectionError as exc:
-            self._notify_status("error", f"Unable to open receiver connection: {exc}")
-            return False
+        This method is deprecated and kept for backward compatibility.
+        Use start_connection() with a specific connection_id instead.
+        """
+        # Find first connection of this type
+        for conn_id, conn_info in self.__connections.items():
+            if conn_info.interface_type == connection_type:
+                return self.start_connection(conn_id)
 
-        self._notify_status("info", f"Receiver {connection_type} started")
-        return True
+        self._notify_status("error", f"No connection found for type: {connection_type}")
+        return False
 
     def config(self, config: dict) -> None:
         if not config:
@@ -213,21 +243,43 @@ class Backend(QObject):
         self.__interfaces_config = parse_interface_definitions(config.get("interfaces", []))
         self.__scroll_step = config.get("scroll_step", self.__scroll_step)
         self._graph_state.clear()
-        self._connected_receivers.clear()
-        self.receiver_list = self.__receiver_registry.create_receivers(self.__interfaces_config.values())
-        self._connect_receivers()
 
-        logger.log_info("Backend registered %s receiver(s)", len(self.receiver_list.keys()))
+        # Load default templates from interface config
+        self.__default_templates.clear()
+        for interface_type, interface_def in self.__interfaces_config.items():
+            self.__default_templates[interface_type] = interface_def.defaults.copy()
+
+        logger.log_info("Backend loaded %s interface template(s)", len(self.__default_templates))
+
+        # Load saved connections from config
+        self._load_connections_from_config()
+
+        # Migration: If no connections exist, this is likely first run or old config
+        # We don't auto-create connections anymore - user must explicitly create them
+        if not self.__connections:
+            logger.log_info("No saved connections found - user can create connections via UI")
+
         self.backend_setup_done = True
 
     @Slot("QString", "QJSValue", result="bool")
     def set_settings(self, interface: str, settings: QJSValue) -> bool:
+        """Update default template settings for an interface type.
+
+        This updates the default settings that will be used when creating new connections.
+        To update settings for a specific connection, use update_connection_settings().
+
+        Args:
+            interface: Interface type (Serial, Telnet, MQTT, Test)
+            settings: New default settings as QJSValue
+
+        Returns:
+            True if updated successfully, False otherwise
+        """
         self.interface = interface
         self.settings = settings
 
-        receiver = self.receiver_list.get(interface)
-        if receiver is None:
-            self._notify_status("warning", f"Unknown interface for settings: {interface}")
+        if interface not in self.__default_templates:
+            self._notify_status("warning", f"Unknown interface type for settings: {interface}")
             return False
 
         py_settings = Converter.jsvalue_to_dict(settings)
@@ -235,15 +287,27 @@ class Backend(QObject):
             self._notify_status("warning", f"Cannot convert settings for {interface}")
             return False
 
-        receiver.config(py_settings)
-        self._notify_status("info", f"Updated settings for {interface}")
+        # Update default template
+        self.__default_templates[interface] = py_settings
+        self._notify_status("info", f"Updated default template for {interface}")
+
+        # Save updated templates to config
+        self._save_templates_to_config()
         return True
 
     @Slot(str, result="bool")
     def settings_valid(self, connection_type: str) -> bool:
-        if connection_type in self.receiver_list.keys():
-            return self.receiver_list[connection_type].settings_valid()
-        return False
+        """Check if settings for an interface type are valid.
+
+        Note: This is a simplified check - actual validation happens when creating/updating connections.
+
+        Args:
+            connection_type: Interface type to check
+
+        Returns:
+            True if the interface type exists, False otherwise
+        """
+        return connection_type in self.__default_templates
 
     @Slot(result="QVariant")
     def get_ui_config(self):
@@ -366,13 +430,6 @@ class Backend(QObject):
     # ------------------------------------------------------------------ #
     # Internal helpers
     # ------------------------------------------------------------------ #
-    def _connect_receivers(self) -> None:
-        for name, receiver in self.receiver_list.items():
-            if name in self._connected_receivers:
-                continue
-            receiver.new_data.connect(partial(self._on_receiver_data, name))
-            self._connected_receivers.add(name)
-
     def _on_receiver_data(self, interface: str, payload: bytes) -> None:
         """Handle incoming data from a receiver.
 
@@ -422,9 +479,17 @@ class Backend(QObject):
             x_value = state["auto_index"]
             state["auto_index"] += 1
 
-        # Send point to QML
-        point = {"x": x_value, "y": data_point.value}
-        self._queue_event("append_graph_point", unique_id, point)
+        # Apply downsampling if enabled
+        if self._downsample_enabled and not self._should_emit_point(unique_id):
+            return
+
+        # Send point to QML - use batching for better performance
+        if self._batch_enabled:
+            self._buffer_point(unique_id, x_value, data_point.value)
+        else:
+            # Legacy: direct send (slower)
+            point = {"x": x_value, "y": data_point.value}
+            self._queue_event("append_graph_point", unique_id, point)
 
     def _parse_data_point(self, interface: str, payload: bytes) -> PlotDataPoint | None:
         """Parse received payload into a PlotDataPoint.
@@ -533,7 +598,7 @@ class Backend(QObject):
         self._queue_event("com_port_update", ports)
 
     def _on_scroll_timer(self) -> None:
-        if self._backend_events is None:
+        if not self.__auto_scroll_enabled or self._backend_events is None:
             return
         self.__xPoint += self.__scroll_step
         self._queue_event("scrollRight", self.__scroll_step)
@@ -573,6 +638,146 @@ class Backend(QObject):
 
         self._queue_event("status_message", level, message)
 
+    # ------------------------------------------------------------------ #
+    # Batch update methods for performance optimization
+    # ------------------------------------------------------------------ #
+    def _buffer_point(self, unique_id: str, x: float, y: float) -> None:
+        """Buffer a point for batch sending to QML.
+
+        Points are collected and sent in batches to reduce QML/JavaScript overhead.
+        If buffer reaches batch_size, it's flushed immediately.
+        Otherwise, the batch timer will flush it periodically.
+        """
+        if unique_id not in self._point_buffer:
+            self._point_buffer[unique_id] = []
+
+        self._point_buffer[unique_id].append((x, y))
+
+        # Flush immediately if buffer is full
+        if len(self._point_buffer[unique_id]) >= self._batch_size:
+            self._flush_points_for_line(unique_id)
+
+    def _flush_point_buffer(self) -> None:
+        """Timer callback to flush all buffered points."""
+        for unique_id in list(self._point_buffer.keys()):
+            self._flush_points_for_line(unique_id)
+
+    def _flush_points_for_line(self, unique_id: str) -> None:
+        """Flush buffered points for a single line to QML."""
+        if unique_id not in self._point_buffer:
+            return
+
+        points = self._point_buffer[unique_id]
+        if not points:
+            return
+
+        # Send batch to QML
+        self._queue_event("append_graph_points_batch", unique_id, points)
+
+        # Clear buffer
+        self._point_buffer[unique_id] = []
+
+    @Slot(bool)
+    def set_batch_enabled(self, enabled: bool) -> None:
+        """Enable or disable batch updates.
+
+        Args:
+            enabled: True to enable batching (better performance), False for immediate updates
+        """
+        self._batch_enabled = enabled
+        logger.log_info(f"Batch updates {'enabled' if enabled else 'disabled'}")
+
+        # If disabling, flush remaining buffers
+        if not enabled:
+            self._flush_point_buffer()
+
+    @Slot(int)
+    def set_batch_size(self, size: int) -> None:
+        """Set maximum batch size before immediate flush.
+
+        Args:
+            size: Number of points to buffer before flushing (default: 10)
+        """
+        if size < 1:
+            size = 1
+        self._batch_size = size
+        logger.log_info(f"Batch size set to {size}")
+
+    @Slot(int)
+    def set_batch_interval(self, interval_ms: int) -> None:
+        """Set batch flush interval in milliseconds.
+
+        Args:
+            interval_ms: Milliseconds between batch flushes (default: 50ms = 20 Hz)
+        """
+        if interval_ms < 10:
+            interval_ms = 10
+        self._batch_timer.setInterval(interval_ms)
+        logger.log_info(f"Batch interval set to {interval_ms}ms")
+
+    @Slot(bool)
+    def set_auto_scroll_enabled(self, enabled: bool) -> None:
+        """Enable or disable automatic chart scrolling.
+
+        Args:
+            enabled: True to enable auto-scroll, False to disable
+        """
+        self.__auto_scroll_enabled = enabled
+        if enabled:
+            if not self.__scroll_timer.isActive():
+                self.__scroll_timer.start(1000)
+            logger.log_info("Auto-scroll enabled")
+        else:
+            self.__scroll_timer.stop()
+            logger.log_info("Auto-scroll disabled")
+
+    @Slot(bool)
+    def set_downsample_enabled(self, enabled: bool) -> None:
+        """Enable or disable downsampling for high-frequency data.
+
+        When enabled, incoming data rates above the target Hz will be reduced
+        to prevent overwhelming the chart rendering.
+
+        Args:
+            enabled: True to enable downsampling, False to disable
+        """
+        self._downsample_enabled = enabled
+        if not enabled:
+            self._last_emit_time.clear()
+        logger.log_info(f"Downsampling {'enabled' if enabled else 'disabled'}")
+
+    @Slot(float)
+    def set_downsample_target_hz(self, hz: float) -> None:
+        """Set target display rate for downsampling.
+
+        Args:
+            hz: Target frequency in Hz (default: 50 Hz)
+        """
+        if hz < 1:
+            hz = 1
+        if hz > 1000:
+            hz = 1000
+        self._downsample_target_hz = hz
+        logger.log_info(f"Downsample target set to {hz} Hz")
+
+    def _should_emit_point(self, unique_id: str) -> bool:
+        """Check if enough time has passed to emit a new point (rate limiting).
+
+        Args:
+            unique_id: Line identifier
+
+        Returns:
+            True if point should be emitted, False to skip
+        """
+        now = time.time()
+        last_time = self._last_emit_time.get(unique_id, 0)
+        interval = 1.0 / self._downsample_target_hz
+
+        if now - last_time >= interval:
+            self._last_emit_time[unique_id] = now
+            return True
+        return False
+
     # Setup when backend is ready
     def on_backend_setup_done(self, status: bool) -> None:
         if status:
@@ -593,48 +798,56 @@ class Backend(QObject):
 
     @Slot(str, result="QVariant")
     def get_interface_config(self, interface: str) -> Dict[str, Any]:
-        """Get configuration for a specific interface from config.json."""
-        if not self.__interfaces_config:
-            logger.log_warning(f"No interface config loaded for {interface}")
+        """Get default template configuration for a specific interface type.
+
+        Args:
+            interface: Interface type (Serial, Telnet, MQTT, Test)
+
+        Returns:
+            Dictionary with default settings for this interface type
+        """
+        if interface not in self.__default_templates:
+            logger.log_warning(f"No default template found for interface: {interface}")
             return {}
 
-        for iface_conf in self.__interfaces_config.get("interfaces", []):
-            if iface_conf.get("type") == interface:
-                default_config = iface_conf.get("default", {})
-                logger.log_debug(f"Loaded config for {interface}: {default_config}")
-                return default_config
+        default_config = self.__default_templates[interface].copy()
+        logger.log_debug(f"Loaded default template for {interface}: {default_config}")
+        return default_config
 
-        logger.log_warning(f"No config found for interface: {interface}")
-        return {}
+    @Slot(result="QVariant")
+    def get_available_interface_types(self) -> List[str]:
+        """Get list of all available interface types.
+
+        Returns:
+            List of interface type names (e.g., ["Serial", "Telnet", "MQTT", "Test"])
+        """
+        return list(self.__default_templates.keys())
+
+    @Slot(str, result="QVariant")
+    def get_default_template(self, interface_type: str) -> Dict[str, Any]:
+        """Get the default template for a specific interface type.
+
+        This is used by the UI when creating new connections or editing default templates.
+
+        Args:
+            interface_type: Interface type (Serial, Telnet, MQTT, Test)
+
+        Returns:
+            Dictionary with default template settings
+        """
+        return self.get_interface_config(interface_type)
 
     @Slot()
     def save_settings_to_config(self) -> bool:
-        """Save current settings to config.json."""
-        try:
-            import json
-            config_path = "config/config.json"
+        """Save current default templates to config.json.
 
-            with open(config_path, 'r') as f:
-                config = json.load(f)
+        This saves the default templates that will be used when creating new connections.
+        Individual connection settings are saved separately via _save_connections_to_config().
 
-            # Update interface defaults with current settings
-            for iface_conf in config.get("interfaces", []):
-                interface_type = iface_conf.get("type")
-                receiver = self.receiver_list.get(interface_type)
-                if receiver and hasattr(receiver, 'get_config'):
-                    current_config = receiver.get_config()
-                    iface_conf["default"] = current_config
-                    logger.log_debug(f"Updated config for {interface_type}")
-
-            with open(config_path, 'w') as f:
-                json.dump(config, f, indent=2)
-
-            logger.log_info("Settings saved to config.json")
-            return True
-
-        except Exception as e:
-            logger.log_error(f"Failed to save settings: {e}")
-            return False
+        Returns:
+            True if saved successfully, False otherwise
+        """
+        return self._save_templates_to_config()
 
     @Slot(str, "QVariant", result="bool")
     def save_preset(self, file_url: str, preset: Dict[str, Any]) -> bool:
@@ -681,3 +894,501 @@ class Backend(QObject):
         except Exception as e:
             logger.log_error(f"Failed to load preset: {e}")
             return {}
+
+    # ------------------------------------------------------------------ #
+    # Multi-Connection Management API
+    # ------------------------------------------------------------------ #
+    @Slot(str, str, "QJSValue", result=str)
+    def create_connection(self, interface_type: str, display_name: str, settings: QJSValue) -> str:
+        """Create a new connection instance.
+
+        Args:
+            interface_type: Type of interface (Serial, Telnet, MQTT, Test)
+            display_name: User-friendly name for the connection
+            settings: Initial settings as QJSValue
+
+        Returns:
+            connection_id: Unique ID for the created connection, or empty string on error
+        """
+        # Validate interface type
+        if interface_type not in self.__interfaces_config:
+            self._notify_status("error", f"Unknown interface type: {interface_type}")
+            return ""
+
+        # Generate unique connection ID
+        self.__connection_counter += 1
+        timestamp = int(time.time() * 1000)
+        connection_id = f"{interface_type}_{timestamp}_{self.__connection_counter}"
+
+        # Convert settings first to generate better display name
+        py_settings = Converter.jsvalue_to_dict(settings) if settings.isObject() else {}
+
+        # Auto-generate display name if empty
+        if not display_name or display_name.strip() == "":
+            display_name = self._generate_display_name(interface_type, py_settings)
+
+        # Create receiver instance
+        interface_config = self.__interfaces_config[interface_type]
+        receiver = self.__receiver_registry.create_receiver({
+            "type": interface_config.type,
+            "default": interface_config.defaults
+        })
+        if receiver is None:
+            self._notify_status("error", f"Failed to create receiver for {interface_type}")
+            return ""
+
+        # Configure receiver with settings or defaults
+        if py_settings:
+            receiver.config(py_settings)
+        else:
+            # Use default settings from config
+            default_settings = interface_config.defaults
+            if default_settings:
+                receiver.config(default_settings)
+
+        # Connect receiver signals
+        receiver.new_data.connect(partial(self._on_receiver_data, connection_id))
+
+        # Create connection info
+        conn_info = ConnectionInfo(
+            connection_id=connection_id,
+            interface_type=interface_type,
+            display_name=display_name,
+            status="disconnected",
+            settings=py_settings if py_settings else interface_config.defaults,
+            receiver=receiver
+        )
+
+        self.__connections[connection_id] = conn_info
+        logger.log_info(f"Created connection: {connection_id} ({display_name})")
+
+        # Emit signal and save
+        self._emit_connections_changed()
+        self._save_connections_to_config()
+
+        return connection_id
+
+    @Slot(str, result=bool)
+    def start_connection(self, connection_id: str) -> bool:
+        """Start a specific connection.
+
+        Args:
+            connection_id: Unique ID of the connection to start
+
+        Returns:
+            True if started successfully, False otherwise
+        """
+        conn_info = self.__connections.get(connection_id)
+        if conn_info is None:
+            self._notify_status("error", f"Connection not found: {connection_id}")
+            return False
+
+        if conn_info.status == "connected":
+            self._notify_status("warning", f"Connection already active: {connection_id}")
+            return True
+
+        # Update status to connecting
+        conn_info.status = "connecting"
+        self._emit_connection_status_changed(connection_id, "connecting", {})
+
+        try:
+            conn_info.receiver.start()
+            conn_info.status = "connected"
+            self._notify_status("info", f"Connection started: {conn_info.display_name}")
+            self._emit_connection_status_changed(connection_id, "connected", {})
+            self._emit_connections_changed()
+            return True
+
+        except ValueError as exc:
+            conn_info.status = "disconnected"
+            error_msg = f"Invalid settings for {conn_info.display_name}: {exc}"
+            self._notify_status("warning", error_msg)
+            self._emit_connection_status_changed(connection_id, "disconnected", {"error": str(exc)})
+            self._emit_connections_changed()
+            return False
+
+        except ConnectionError as exc:
+            conn_info.status = "disconnected"
+            error_msg = f"Failed to connect {conn_info.display_name}: {exc}"
+            self._notify_status("error", error_msg)
+            self._emit_connection_status_changed(connection_id, "disconnected", {"error": str(exc)})
+            self._emit_connections_changed()
+            return False
+
+    @Slot(str, result=bool)
+    def stop_connection(self, connection_id: str) -> bool:
+        """Stop a specific connection.
+
+        Args:
+            connection_id: Unique ID of the connection to stop
+
+        Returns:
+            True if stopped successfully, False otherwise
+        """
+        conn_info = self.__connections.get(connection_id)
+        if conn_info is None:
+            self._notify_status("error", f"Connection not found: {connection_id}")
+            return False
+
+        if conn_info.status == "disconnected":
+            self._notify_status("warning", f"Connection already stopped: {connection_id}")
+            return True
+
+        try:
+            conn_info.receiver.stop()
+            conn_info.status = "disconnected"
+            self._notify_status("info", f"Connection stopped: {conn_info.display_name}")
+            self._emit_connection_status_changed(connection_id, "disconnected", {})
+            self._emit_connections_changed()
+            return True
+
+        except Exception as exc:
+            error_msg = f"Error stopping {conn_info.display_name}: {exc}"
+            self._notify_status("error", error_msg)
+            return False
+
+    @Slot(str, result=bool)
+    def delete_connection(self, connection_id: str) -> bool:
+        """Delete a connection (only if disconnected).
+
+        Args:
+            connection_id: Unique ID of the connection to delete
+
+        Returns:
+            True if deleted successfully, False otherwise
+        """
+        conn_info = self.__connections.get(connection_id)
+        if conn_info is None:
+            self._notify_status("error", f"Connection not found: {connection_id}")
+            return False
+
+        if conn_info.status != "disconnected":
+            self._notify_status("error", f"Cannot delete active connection: {conn_info.display_name}")
+            return False
+
+        # Remove connection
+        del self.__connections[connection_id]
+        logger.log_info(f"Deleted connection: {connection_id} ({conn_info.display_name})")
+
+        # Emit signal and save
+        self._emit_connections_changed()
+        self._save_connections_to_config()
+
+        return True
+
+    @Slot(str, "QJSValue", result=bool)
+    def update_connection_settings(self, connection_id: str, settings: QJSValue) -> bool:
+        """Update settings for a specific connection.
+
+        Args:
+            connection_id: Unique ID of the connection
+            settings: New settings as QJSValue
+
+        Returns:
+            True if updated successfully, False otherwise
+        """
+        conn_info = self.__connections.get(connection_id)
+        if conn_info is None:
+            self._notify_status("error", f"Connection not found: {connection_id}")
+            return False
+
+        py_settings = Converter.jsvalue_to_dict(settings)
+        if not isinstance(py_settings, dict):
+            self._notify_status("warning", f"Invalid settings format for {connection_id}")
+            return False
+
+        # Update settings
+        conn_info.settings = py_settings
+        conn_info.receiver.config(py_settings)
+
+        logger.log_info(f"Updated settings for connection: {connection_id}")
+        self._notify_status("info", f"Settings updated for {conn_info.display_name}")
+
+        # Save to config
+        self._save_connections_to_config()
+
+        return True
+
+    @Slot(str, str, result=bool)
+    def rename_connection(self, connection_id: str, new_name: str) -> bool:
+        """Rename a connection.
+
+        Args:
+            connection_id: Unique ID of the connection
+            new_name: New display name
+
+        Returns:
+            True if renamed successfully, False otherwise
+        """
+        conn_info = self.__connections.get(connection_id)
+        if conn_info is None:
+            self._notify_status("error", f"Connection not found: {connection_id}")
+            return False
+
+        if not new_name or new_name.strip() == "":
+            self._notify_status("warning", "Connection name cannot be empty")
+            return False
+
+        old_name = conn_info.display_name
+        conn_info.display_name = new_name.strip()
+        logger.log_info(f"Renamed connection {connection_id}: '{old_name}' -> '{new_name}'")
+
+        self._emit_connections_changed()
+        self._save_connections_to_config()
+
+        return True
+
+    @Slot(result="QVariant")
+    def get_connections(self) -> List[Dict[str, Any]]:
+        """Get list of all connections for UI display.
+
+        Returns:
+            List of connection dictionaries with keys:
+            - id: connection_id
+            - type: interface_type
+            - name: display_name
+            - status: current status (connected/disconnected/connecting)
+            - settings: connection settings
+        """
+        connections_list = []
+        for conn_id, conn_info in self.__connections.items():
+            connections_list.append({
+                "id": conn_id,
+                "type": conn_info.interface_type,
+                "name": conn_info.display_name,
+                "status": conn_info.status,
+                "settings": conn_info.settings,
+                "created_at": conn_info.created_at
+            })
+
+        # Sort by creation time
+        connections_list.sort(key=lambda x: x["created_at"])
+
+        return connections_list
+
+    @Slot(str, result="QVariant")
+    def get_connection_details(self, connection_id: str) -> Dict[str, Any]:
+        """Get detailed information about a specific connection.
+
+        Args:
+            connection_id: Unique ID of the connection
+
+        Returns:
+            Dictionary with connection details, or empty dict if not found
+        """
+        conn_info = self.__connections.get(connection_id)
+        if conn_info is None:
+            return {}
+
+        return {
+            "id": conn_info.connection_id,
+            "type": conn_info.interface_type,
+            "name": conn_info.display_name,
+            "status": conn_info.status,
+            "settings": conn_info.settings,
+            "created_at": conn_info.created_at
+        }
+
+    def _emit_connections_changed(self) -> None:
+        """Emit signal that connection list has changed."""
+        connections_list = self.get_connections()
+        self.connections_changed.emit(connections_list)
+
+    def _emit_connection_status_changed(self, connection_id: str, status: str, details: Dict[str, Any]) -> None:
+        """Emit signal that a connection's status has changed."""
+        self.connection_status_changed.emit(connection_id, status, details)
+
+    def _generate_display_name(self, interface_type: str, settings: Dict[str, Any]) -> str:
+        """Generate a meaningful display name based on interface type and settings.
+
+        Args:
+            interface_type: Type of interface (Serial, Telnet, MQTT, Test)
+            settings: Connection settings dictionary
+
+        Returns:
+            Generated display name
+        """
+        if interface_type == "Serial":
+            port = settings.get("port", "")
+            if port:
+                return f"Serial - {port}"
+            return f"Serial #{self.__connection_counter}"
+
+        elif interface_type == "Telnet":
+            host = settings.get("host", "")
+            port = settings.get("port", "")
+            if host and port:
+                return f"Telnet - {host}:{port}"
+            elif host:
+                return f"Telnet - {host}"
+            return f"Telnet #{self.__connection_counter}"
+
+        elif interface_type == "MQTT":
+            host = settings.get("host", "")
+            if host:
+                return f"MQTT - {host}"
+            return f"MQTT #{self.__connection_counter}"
+
+        elif interface_type == "Test":
+            name = settings.get("name", "")
+            if name:
+                return f"Test - {name}"
+            return f"Test #{self.__connection_counter}"
+
+        else:
+            return f"{interface_type} #{self.__connection_counter}"
+
+    def _save_templates_to_config(self) -> bool:
+        """Save default templates to config.json.
+
+        Returns:
+            True if saved successfully, False otherwise
+        """
+        try:
+            # Read current config
+            with open(self.__config_path, 'r') as f:
+                config = json.load(f)
+
+            # Update interface defaults with current templates
+            for iface_conf in config.get("interfaces", []):
+                interface_type = iface_conf.get("type")
+                if interface_type in self.__default_templates:
+                    iface_conf["default"] = self.__default_templates[interface_type]
+                    logger.log_debug(f"Updated default template for {interface_type}")
+
+            # Write back to file
+            with open(self.__config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+
+            logger.log_info("Default templates saved to config.json")
+            return True
+
+        except Exception as e:
+            logger.log_error(f"Failed to save templates to config: {e}")
+            return False
+
+    def _save_connections_to_config(self) -> bool:
+        """Save all connections to config.json for persistence.
+
+        Returns:
+            True if saved successfully, False otherwise
+        """
+        try:
+            # Read current config
+            with open(self.__config_path, 'r') as f:
+                config = json.load(f)
+
+            # Serialize connections (only save disconnected ones to avoid auto-connecting on startup)
+            saved_connections = []
+            for conn_id, conn_info in self.__connections.items():
+                saved_connections.append({
+                    "id": conn_id,
+                    "type": conn_info.interface_type,
+                    "name": conn_info.display_name,
+                    "settings": conn_info.settings,
+                    "created_at": conn_info.created_at
+                })
+
+            # Update config
+            config["saved_connections"] = saved_connections
+
+            # Write back to file
+            with open(self.__config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+
+            logger.log_debug(f"Saved {len(saved_connections)} connections to config")
+            return True
+
+        except Exception as e:
+            logger.log_error(f"Failed to save connections to config: {e}")
+            return False
+
+    def _load_connections_from_config(self) -> None:
+        """Load saved connections from config.json on startup."""
+        try:
+            with open(self.__config_path, 'r') as f:
+                config = json.load(f)
+
+            saved_connections = config.get("saved_connections", [])
+            if not saved_connections:
+                logger.log_info("No saved connections found in config")
+                return
+
+            logger.log_info(f"Loading {len(saved_connections)} saved connections...")
+
+            for conn_data in saved_connections:
+                try:
+                    # Extract connection data
+                    conn_id = conn_data.get("id")
+                    interface_type = conn_data.get("type")
+                    display_name = conn_data.get("name")
+                    settings = conn_data.get("settings", {})
+                    created_at = conn_data.get("created_at", time.time())
+
+                    # Validate
+                    if not conn_id or not interface_type or not display_name:
+                        logger.log_warning(f"Skipping invalid connection entry: {conn_data}")
+                        continue
+
+                    if interface_type not in self.__interfaces_config:
+                        logger.log_warning(f"Skipping connection with unknown interface: {interface_type}")
+                        continue
+
+                    # Create receiver
+                    interface_config = self.__interfaces_config[interface_type]
+                    receiver = self.__receiver_registry.create_receiver({
+                        "type": interface_config.type,
+                        "default": interface_config.defaults
+                    })
+                    if receiver is None:
+                        logger.log_warning(f"Failed to create receiver for saved connection: {conn_id}")
+                        continue
+
+                    # Configure receiver
+                    if settings:
+                        receiver.config(settings)
+                    else:
+                        default_settings = interface_config.defaults
+                        if default_settings:
+                            receiver.config(default_settings)
+
+                    # Connect receiver signals
+                    receiver.new_data.connect(partial(self._on_receiver_data, conn_id))
+
+                    # Create connection info
+                    conn_info = ConnectionInfo(
+                        connection_id=conn_id,
+                        interface_type=interface_type,
+                        display_name=display_name,
+                        status="disconnected",
+                        settings=settings,
+                        receiver=receiver,
+                        created_at=created_at
+                    )
+
+                    self.__connections[conn_id] = conn_info
+                    logger.log_info(f"Restored connection: {conn_id} ({display_name})")
+
+                    # Update connection counter to avoid ID collisions
+                    if "_" in conn_id:
+                        try:
+                            parts = conn_id.split("_")
+                            if len(parts) >= 3:
+                                counter = int(parts[-1])
+                                self.__connection_counter = max(self.__connection_counter, counter)
+                        except (ValueError, IndexError):
+                            pass
+
+                except Exception as e:
+                    logger.log_error(f"Error loading connection {conn_data.get('id', 'unknown')}: {e}")
+                    continue
+
+            logger.log_info(f"Successfully loaded {len(self.__connections)} connections from config")
+
+            # Emit signal to update UI
+            self._emit_connections_changed()
+
+        except FileNotFoundError:
+            logger.log_info(f"Config file not found: {self.__config_path}")
+        except Exception as e:
+            logger.log_error(f"Failed to load connections from config: {e}")

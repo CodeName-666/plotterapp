@@ -73,6 +73,39 @@ class ReceiverRegistry:
         self._factories[interface_type] = factory
         logger.log_debug(f"Registered receiver factory for '{interface_type}'")
 
+    def create_receiver(self, interface_config: Dict[str, Any]) -> Optional[Receiver]:
+        """Create a single receiver instance from an interface configuration.
+
+        Args:
+            interface_config: Dictionary with 'type' and 'default' keys
+
+        Returns:
+            Receiver instance or None if creation fails
+        """
+        interface_type = interface_config.get("type")
+        if not interface_type:
+            logger.log_error("Interface config missing 'type' field")
+            return None
+
+        factory = self._factories.get(interface_type)
+        if factory is None:
+            logger.log_warning(
+                f"No receiver factory registered for '{interface_type}'"
+            )
+            return None
+
+        defaults = interface_config.get("default", {})
+        receiver = factory({"type": interface_type, "default": defaults})
+        if receiver is None:
+            logger.log_warning(
+                f"Factory for '{interface_type}' returned no receiver instance"
+            )
+            return None
+
+        receiver.config(defaults)
+        logger.log_info(f"Created receiver for interface '{interface_type}'")
+        return receiver
+
     def create_receivers(
         self, interface_definitions: Iterable[InterfaceDefinition]
     ) -> Dict[str, Receiver]:
@@ -104,12 +137,7 @@ class ReceiverRegistry:
             "Serial", lambda cfg: SerialReceiver(cfg.get("default", {}))
         )
         self.register_factory(
-            "Telnet Client",
-            lambda cfg: TelnetClientReceiver(cfg.get("default", {})),
-        )
-        self.register_factory(
-            "Telnet Server",
-            lambda cfg: TelnetServerReceiver(cfg.get("default", {})),
+            "Telnet", lambda cfg: TelnetClientReceiver(cfg.get("default", {}))
         )
         self.register_factory(
             "MQTT", lambda cfg: MqttReceiver(cfg.get("default", {}))
