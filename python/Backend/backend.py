@@ -590,3 +590,94 @@ class Backend(QObject):
             logger.log_info("New Comports found {}".format(new_com_list))
             self.com_port_update.emit(new_com_list)
             self.__com_list = new_com_list
+
+    @Slot(str, result="QVariant")
+    def get_interface_config(self, interface: str) -> Dict[str, Any]:
+        """Get configuration for a specific interface from config.json."""
+        if not self.__interfaces_config:
+            logger.log_warning(f"No interface config loaded for {interface}")
+            return {}
+
+        for iface_conf in self.__interfaces_config.get("interfaces", []):
+            if iface_conf.get("type") == interface:
+                default_config = iface_conf.get("default", {})
+                logger.log_debug(f"Loaded config for {interface}: {default_config}")
+                return default_config
+
+        logger.log_warning(f"No config found for interface: {interface}")
+        return {}
+
+    @Slot()
+    def save_settings_to_config(self) -> bool:
+        """Save current settings to config.json."""
+        try:
+            import json
+            config_path = "config/config.json"
+
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+
+            # Update interface defaults with current settings
+            for iface_conf in config.get("interfaces", []):
+                interface_type = iface_conf.get("type")
+                receiver = self.receiver_list.get(interface_type)
+                if receiver and hasattr(receiver, 'get_config'):
+                    current_config = receiver.get_config()
+                    iface_conf["default"] = current_config
+                    logger.log_debug(f"Updated config for {interface_type}")
+
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+
+            logger.log_info("Settings saved to config.json")
+            return True
+
+        except Exception as e:
+            logger.log_error(f"Failed to save settings: {e}")
+            return False
+
+    @Slot(str, "QVariant", result="bool")
+    def save_preset(self, file_url: str, preset: Dict[str, Any]) -> bool:
+        """Save settings preset to a JSON file."""
+        try:
+            import json
+            from urllib.parse import urlparse
+
+            # Convert file URL to path
+            parsed = urlparse(file_url)
+            file_path = parsed.path
+            if file_path.startswith('/') and len(file_path) > 2 and file_path[2] == ':':
+                file_path = file_path[1:]
+
+            with open(file_path, 'w') as f:
+                json.dump(preset, f, indent=2)
+
+            logger.log_info(f"Preset saved to {file_path}")
+            return True
+
+        except Exception as e:
+            logger.log_error(f"Failed to save preset: {e}")
+            return False
+
+    @Slot(str, result="QVariant")
+    def load_preset(self, file_url: str) -> Dict[str, Any]:
+        """Load settings preset from a JSON file."""
+        try:
+            import json
+            from urllib.parse import urlparse
+
+            # Convert file URL to path
+            parsed = urlparse(file_url)
+            file_path = parsed.path
+            if file_path.startswith('/') and len(file_path) > 2 and file_path[2] == ':':
+                file_path = file_path[1:]
+
+            with open(file_path, 'r') as f:
+                preset = json.load(f)
+
+            logger.log_info(f"Preset loaded from {file_path}")
+            return preset
+
+        except Exception as e:
+            logger.log_error(f"Failed to load preset: {e}")
+            return {}
