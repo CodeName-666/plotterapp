@@ -1139,6 +1139,24 @@ class Backend(QObject):
         return True
 
     @Slot(result="QVariant")
+    def get_interface_types(self) -> List[Dict[str, Any]]:
+        """Get list of available interface types for connection creation.
+
+        Returns:
+            List of interface type dictionaries with keys:
+            - type: interface type name (Serial, MQTT, Telnet, Test)
+            - defaults: default settings for this interface type
+        """
+        interface_types = []
+        for interface_type, interface_config in self.__interfaces_config.items():
+            interface_types.append({
+                "type": interface_type,
+                "defaults": interface_config.defaults
+            })
+
+        return interface_types
+
+    @Slot(result="QVariant")
     def get_connections(self) -> List[Dict[str, Any]]:
         """Get list of all connections for UI display.
 
