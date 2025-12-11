@@ -3,6 +3,7 @@ import typing
 from os.path import abspath, dirname, join
 from Backend.backend import Backend
 from Receiver.receiver import Receiver
+from Backend.Windows.window_manager_bridge import WindowManagerBridge
 from Logger import logger
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
@@ -26,6 +27,7 @@ class Plotter(QObject):
 
         self.__backend: Backend = None
         self.__receiver: Receiver = None
+        self.__window_manager: WindowManagerBridge = None
 
     def set_backend(self, backend: Backend):
         self.__backend = backend
@@ -33,6 +35,10 @@ class Plotter(QObject):
 
     def set_reveiver(self, receiver: Receiver):
         self.__receiver = receiver
+
+    def set_window_manager(self, window_manager: WindowManagerBridge):
+        self.__window_manager = window_manager
+        self.__context.setContextProperty("WindowManager", window_manager)
 
     def load_app(self):
         self.__engine.load(abspath(self.__qmlFile))
