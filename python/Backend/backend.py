@@ -495,9 +495,10 @@ class Backend(QObject):
         """Parse received payload into a PlotDataPoint.
 
         Expected formats:
-        1. JSON: {"id": 0-255, "value": float, "timestamp": float (optional)}
-        2. JSON: {"id": 0-255, "value": float}
-        3. Plain number: float (fallback: id=0, auto-timestamp)
+        1. JSON: {"id": 0-255, "value": float, "timestamp": float (optional), "z": float (optional)}
+        2. JSON: {"id": 0-255, "value": float, "z": float (optional)}
+        3. JSON: {"id": 0-255, "value": float}
+        4. Plain number: float (fallback: id=0, auto-timestamp)
 
         Args:
             interface: Name of the interface (for logging)
@@ -537,6 +538,7 @@ class Backend(QObject):
             data_id = decoded.get("id")
             value = decoded.get("value")
             timestamp = decoded.get("timestamp")
+            z_value = decoded.get("z")
 
             # Validate ID
             if data_id is None:
@@ -559,8 +561,18 @@ class Backend(QObject):
                 self._notify_status("warning", f"{interface}: 'timestamp' must be numeric or omitted, got {type(timestamp)}")
                 return None
 
+            # Validate z_value (optional)
+            if z_value is not None and not isinstance(z_value, (int, float)):
+                self._notify_status("warning", f"{interface}: 'z' must be numeric or omitted, got {type(z_value)}")
+                return None
+
             try:
-                return PlotDataPoint(id=data_id, value=float(value), timestamp=float(timestamp) if timestamp is not None else None)
+                return PlotDataPoint(
+                    id=data_id,
+                    value=float(value),
+                    timestamp=float(timestamp) if timestamp is not None else None,
+                    z_value=float(z_value) if z_value is not None else None
+                )
             except ValueError as e:
                 self._notify_status("warning", f"{interface}: invalid data point: {e}")
                 return None

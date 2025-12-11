@@ -1,12 +1,12 @@
 # PlotterLib - Embedded Sensor Data Streaming Library
 
-**Version 4.0** - Lightweight C++ library for streaming sensor data to PlotterApp
+**Version 4.1** - Lightweight C++ library for streaming sensor data to PlotterApp
 
 ## Features
 
 ✅ **Extremely Lightweight**
 - Only ~125 lines of code (excluding comments)
-- 74-78 bytes RAM per instance
+- 90-94 bytes RAM per instance (80-byte buffer for 3D support)
 - 2-3 KB Flash/ROM
 - No external dependencies (no JSON libraries required)
 
@@ -21,11 +21,21 @@
 - Easy to add new communication interfaces
 - Supports Serial, WiFi, MQTT, USB CDC, UART, etc.
 
+✅ **2D and 3D Data Support**
+- 2D: X/Y line and scatter charts
+- 3D: X/Y/Z surface and scatter plots
+- Automatic protocol formatting
+
 ✅ **Simple API**
 ```cpp
 Plotter plotter(Serial);
 plotter.setStartTime(millis());
+
+// 2D data
 plotter.send(channelId, value, timestamp);
+
+// 3D data (NEW in v4.1)
+plotter.send3D(channelId, yValue, zValue, timestamp);
 ```
 
 ## Installation
@@ -78,6 +88,37 @@ void loop() {
     plotter.send(0, value, millis());
     delay(100);
 }
+```
+
+### 3D Data Example (NEW in v4.1)
+
+```cpp
+#include <Arduino.h>
+#include <plotter.h>
+
+Plotter plotter(Serial);
+
+void setup() {
+    Serial.begin(115200);
+    plotter.setStartTime(millis());
+}
+
+void loop() {
+    // Read 3D sensor data (e.g., position tracking)
+    float temperature = readTemperature();  // Y-axis
+    float pressure = readPressure();        // Z-axis
+
+    // Send as 3D point: X=time, Y=temp, Z=pressure
+    plotter.send3D(0, temperature, pressure, millis());
+
+    delay(100);
+}
+```
+
+**Output:**
+```json
+{"id":0,"value":25.500000,"z":1013.250000,"timestamp":0.100000}
+{"id":0,"value":25.520000,"z":1013.280000,"timestamp":0.200000}
 ```
 
 ### ESP32 (WiFi + MQTT)
@@ -168,6 +209,15 @@ void send(uint8_t channelId, float value, float timestamp);
 
 // Send data without timestamp (PlotterApp auto-generates)
 void send(uint8_t channelId, float value);
+
+// Send 3D data with automatic timestamp (NEW in v4.1)
+void send3D(uint8_t channelId, float yValue, float zValue, uint32_t currentTimeMs);
+
+// Send 3D data with explicit timestamp (NEW in v4.1)
+void send3D(uint8_t channelId, float yValue, float zValue, float timestamp);
+
+// Send 3D data without timestamp (NEW in v4.1)
+void send3D(uint8_t channelId, float yValue, float zValue);
 
 // Enable/disable timestamps
 void setTimestampEnabled(bool enable);
