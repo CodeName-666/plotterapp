@@ -92,6 +92,7 @@ class Backend(QObject):
         self._graph_state: Dict[str, Dict[str, Any]] = {}  # Key: unique_id (format: "interface_id")
         self._pending_events: Dict[str, List[tuple]] = {}
         self._app_start_time: float = time.time()  # For timestamp normalization
+        self._ignored_signals: set[str] = set()  # unique_id values to ignore (disabled signals)
 
         # Multi-connection management (primary system)
         self.__connections: Dict[str, ConnectionInfo] = {}  # connection_id -> ConnectionInfo
@@ -410,6 +411,24 @@ class Backend(QObject):
 
         return True
 
+    @Slot(str, bool)
+    def set_signal_ignored(self, unique_id: str, ignored: bool) -> None:
+        """Enable/disable a signal source by unique_id.
+
+        When ignored, incoming points are dropped and the line will not auto-reappear.
+        """
+        if ignored:
+            self._ignored_signals.add(unique_id)
+            # Drop any existing state/buffers so the UI can clean up.
+            self.remove_chart_line(unique_id)
+        else:
+            self._ignored_signals.discard(unique_id)
+
+    @Slot(result="QVariant")
+    def get_ignored_signals(self) -> List[str]:
+        """Return ignored signal unique_ids."""
+        return sorted(self._ignored_signals)
+
     @Slot(str, str, str, result=bool)
     def update_chart_line(self, unique_id: str, display_name: str, color: str) -> bool:
         """Update properties of an existing chart line.
@@ -448,6 +467,10 @@ class Backend(QObject):
 
         # Create unique_id from interface and data ID
         unique_id = f"{interface}_{data_point.id}"
+
+        # Ignore disabled signals
+        if unique_id in self._ignored_signals:
+            return
 
         # Get or create state for this unique_id
         state = self._graph_state.get(unique_id)
@@ -552,6 +575,9 @@ class Backend(QObject):
 
         if not text:
             return None
+        if text.startswith("#"):
+            # Allow embedded examples to print comment/header lines.
+            return None
 
         # Try to parse as JSON first
         try:
@@ -565,6 +591,25 @@ class Backend(QObject):
             except ValueError:
                 self._notify_status("warning", f"{interface}: cannot parse payload '{text[:40]}...'")
                 return None
+
+        # Handle optional MQTT wrapper: {"topic": "...", "payload_type": "...", "payload": ...}
+        if isinstance(decoded, dict) and "payload" in decoded and "payload_type" in decoded and "topic" in decoded:
+            payload_type = decoded.get("payload_type")
+            inner = decoded.get("payload")
+            if payload_type == "json" and isinstance(inner, dict):
+                decoded = inner
+            elif payload_type == "text" and isinstance(inner, str):
+                inner_text = inner.strip()
+                if inner_text.startswith("#") or not inner_text:
+                    return None
+                try:
+                    decoded = json.loads(inner_text)
+                except json.JSONDecodeError:
+                    try:
+                        value = float(inner_text)
+                        return PlotDataPoint(id=0, value=value, timestamp=None)
+                    except ValueError:
+                        return None
 
         # Handle JSON object
         if isinstance(decoded, dict):

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 from typing import Any, Callable, Dict, Iterable, Optional
 
 import paho.mqtt.client as mqtt
@@ -33,6 +34,56 @@ def normalize_payload(topic: str, payload: bytes) -> bytes:
         result["payload"] = base64.b64encode(payload).decode("ascii")
 
     return json.dumps(result).encode("utf-8")
+
+
+_PLOTTER_FLOAT_RE = re.compile(
+    rb"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$"
+)
+
+
+def _extract_plotter_payload_lines(payload: bytes) -> list[bytes]:
+    """Return payload lines that look like PlotterApp datapoints.
+
+    Supports:
+    - JSON objects with `id` and (`value` or `y`)
+    - Plain numbers (backend treats this as id=0 fallback)
+    - Multiple newline-separated datapoints within one MQTT message
+    """
+
+    if not payload:
+        return []
+
+    candidates = [line.strip() for line in payload.splitlines() if line.strip()]
+    if not candidates:
+        return []
+
+    result: list[bytes] = []
+    for line in candidates:
+        if _PLOTTER_FLOAT_RE.match(line):
+            result.append(line)
+            continue
+
+        try:
+            decoded = json.loads(line.decode("utf-8"))
+        except Exception:
+            continue
+
+        if not isinstance(decoded, dict):
+            continue
+
+        data_id = decoded.get("id")
+        value = decoded.get("value")
+        if value is None:
+            value = decoded.get("y")
+
+        if not isinstance(data_id, int) or not (0 <= data_id <= 255):
+            continue
+        if not isinstance(value, (int, float)):
+            continue
+
+        result.append(line)
+
+    return result
 
 
 class MqttWorkerThread(ReceiverThread):
@@ -143,6 +194,12 @@ class MqttWorkerThread(ReceiverThread):
         self._connected = False
 
     def _on_message(self, client, userdata, message):  # pylint: disable=unused-argument
+        plotter_lines = _extract_plotter_payload_lines(message.payload)
+        if plotter_lines:
+            for line in plotter_lines:
+                self.new_data.emit(line)
+            return
+
         normalized = normalize_payload(message.topic, message.payload)
         self.new_data.emit(normalized)
 

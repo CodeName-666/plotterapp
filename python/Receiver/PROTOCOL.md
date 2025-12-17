@@ -371,6 +371,7 @@ def _parse_data_point(self, interface: str, payload: bytes) -> PlotDataPoint | N
 - Flow control: None
 
 ### MQTT
+- Payload: Plotter JSON per message (recommended), newline-delimited is supported
 - Topic: User-configurable
 - QoS: 0 (recommended for high-frequency data)
 - Retained: false
