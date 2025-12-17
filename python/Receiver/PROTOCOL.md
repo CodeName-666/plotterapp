@@ -236,6 +236,18 @@ void loop() {
 {"id":0,"value":2.460000}
 ```
 
+### XY Coordinates (X/Y pairs)
+
+If you want a true X/Y chart (not time-based), send explicit coordinates:
+
+```json
+{"id":0,"x":-3.5,"y":7.25}
+```
+
+Notes:
+- `x` is used as-is (no normalization).
+- `y` can also be sent as `value` for compatibility: `{"id":0,"x":1.0,"value":2.0}`.
+
 ## Python Parsing Implementation
 
 The Python backend parses data in `backend.py::_parse_data_point()`:
@@ -245,9 +257,9 @@ def _parse_data_point(self, interface: str, payload: bytes) -> PlotDataPoint | N
     """Parse received payload into a PlotDataPoint.
 
     Expected formats:
-    1. JSON: {"id": 0-255, "value": float, "timestamp": float (optional), "z": float (optional)}
-    2. JSON: {"id": 0-255, "value": float, "z": float (optional)}
-    3. JSON: {"id": 0-255, "value": float}
+    1. JSON (time): {"id": 0-255, "value": float, "timestamp": float (optional), "z": float (optional)}
+    2. JSON (XY): {"id": 0-255, "x": float, "y": float}  # (or "value" instead of "y")
+    3. JSON: {"id": 0-255, "value": float, "z": float (optional)}
     4. Plain number: float (fallback: id=0, auto-timestamp)
     """
     text = payload.decode("utf-8").strip()
@@ -256,7 +268,8 @@ def _parse_data_point(self, interface: str, payload: bytes) -> PlotDataPoint | N
     try:
         decoded = json.loads(text)
         data_id = decoded.get("id")
-        value = decoded.get("value")
+        value = decoded.get("value") if decoded.get("value") is not None else decoded.get("y")
+        x_value = decoded.get("x")
         timestamp = decoded.get("timestamp")
         z_value = decoded.get("z")
 
@@ -267,6 +280,7 @@ def _parse_data_point(self, interface: str, payload: bytes) -> PlotDataPoint | N
         return PlotDataPoint(
             id=data_id,
             value=float(value),
+            x=float(x_value) if x_value is not None else None,
             timestamp=float(timestamp) if timestamp else None,
             z_value=float(z_value) if z_value else None
         )

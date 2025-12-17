@@ -12,11 +12,13 @@ class PlotDataPoint:
     Attributes:
         id: Unique identifier (0-255) for the measurement line
         value: Y-axis value (measurement value)
-        timestamp: Optional X-axis value (time). If None, auto-increment will be used
+        x: Optional X-axis value for XY plots. If provided, it is used as-is.
+        timestamp: Optional X-axis value (time). If None, auto-increment will be used.
         z_value: Optional Z-axis value for 3D plots (XYZ charts)
     """
     id: int  # 0-255
     value: float
+    x: Optional[float] = None
     timestamp: Optional[float] = None
     z_value: Optional[float] = None
 
@@ -28,6 +30,8 @@ class PlotDataPoint:
             raise ValueError(f"ID must be between 0 and 255, got {self.id}")
         if not isinstance(self.value, (int, float)):
             raise ValueError(f"Value must be numeric, got {type(self.value)}")
+        if self.x is not None and not isinstance(self.x, (int, float)):
+            raise ValueError(f"X value must be numeric or None, got {type(self.x)}")
         if self.timestamp is not None and not isinstance(self.timestamp, (int, float)):
             raise ValueError(f"Timestamp must be numeric or None, got {type(self.timestamp)}")
         if self.z_value is not None and not isinstance(self.z_value, (int, float)):

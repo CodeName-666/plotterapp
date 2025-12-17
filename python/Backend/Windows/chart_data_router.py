@@ -102,8 +102,10 @@ class ChartDataRouter(QObject):
             logger.log_warning(f"ChartDataRouter: No unique_id for data_id={point.id}")
             return False
 
-        # Determine X value (timestamp or auto-increment)
-        if point.timestamp is not None:
+        # Determine X value (explicit X, timestamp, or auto-increment)
+        if getattr(point, "x", None) is not None:
+            x_val = float(point.x)  # type: ignore[arg-type]
+        elif point.timestamp is not None:
             x_val = point.timestamp
         else:
             x_val = self._auto_x_values.get(unique_id, 0.0)
@@ -152,8 +154,11 @@ class ChartDataRouter(QObject):
         if is_3d:
             point_list = []
             for p in points:
-                x_val = p.timestamp if p.timestamp is not None else self._auto_x_values.get(unique_id, 0.0)
-                if p.timestamp is None:
+                if getattr(p, "x", None) is not None:
+                    x_val = float(p.x)  # type: ignore[arg-type]
+                else:
+                    x_val = p.timestamp if p.timestamp is not None else self._auto_x_values.get(unique_id, 0.0)
+                if getattr(p, "x", None) is None and p.timestamp is None:
                     self._auto_x_values[unique_id] = x_val + 1.0
                 point_list.append([x_val, p.value, p.z_value])
 
@@ -162,8 +167,11 @@ class ChartDataRouter(QObject):
         else:
             point_list = []
             for p in points:
-                x_val = p.timestamp if p.timestamp is not None else self._auto_x_values.get(unique_id, 0.0)
-                if p.timestamp is None:
+                if getattr(p, "x", None) is not None:
+                    x_val = float(p.x)  # type: ignore[arg-type]
+                else:
+                    x_val = p.timestamp if p.timestamp is not None else self._auto_x_values.get(unique_id, 0.0)
+                if getattr(p, "x", None) is None and p.timestamp is None:
                     self._auto_x_values[unique_id] = x_val + 1.0
                 point_list.append([x_val, p.value])
 

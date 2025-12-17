@@ -488,14 +488,17 @@ class Backend(QObject):
             self._queue_event("newGraph", unique_id, state["display_name"], state["color"], interface_type)
             state["announced"] = True
 
-        # Calculate X-axis value (normalized timestamp or auto-increment)
-        if data_point.timestamp is not None:
-            # Normalize timestamp to seconds since app start (Option A)
+        # Calculate X-axis value:
+        # - If an explicit X value is provided (XY mode), use it as-is.
+        # - Else if a timestamp is provided (time mode), normalize it so each line starts at t=0.
+        # - Else fall back to auto-increment.
+        if getattr(data_point, "x", None) is not None:
+            x_value = float(data_point.x)  # type: ignore[arg-type]
+        elif data_point.timestamp is not None:
             if state["first_timestamp"] is None:
                 state["first_timestamp"] = data_point.timestamp
             x_value = data_point.timestamp - state["first_timestamp"]
         else:
-            # Use auto-increment when no timestamp provided
             x_value = state["auto_index"]
             state["auto_index"] += 1
 
@@ -526,9 +529,9 @@ class Backend(QObject):
         """Parse received payload into a PlotDataPoint.
 
         Expected formats:
-        1. JSON: {"id": 0-255, "value": float, "timestamp": float (optional), "z": float (optional)}
-        2. JSON: {"id": 0-255, "value": float, "z": float (optional)}
-        3. JSON: {"id": 0-255, "value": float}
+        1. JSON (time): {"id": 0-255, "value": float, "timestamp": float (optional), "z": float (optional)}
+        2. JSON (XY): {"id": 0-255, "x": float, "y": float} (or "value" instead of "y")
+        3. JSON: {"id": 0-255, "value": float, "z": float (optional)}
         4. Plain number: float (fallback: id=0, auto-timestamp)
 
         Args:
@@ -568,6 +571,9 @@ class Backend(QObject):
             # Extract required fields
             data_id = decoded.get("id")
             value = decoded.get("value")
+            if value is None:
+                value = decoded.get("y")
+            x_value = decoded.get("x")
             timestamp = decoded.get("timestamp")
             z_value = decoded.get("z")
 
@@ -581,10 +587,15 @@ class Backend(QObject):
 
             # Validate value
             if value is None:
-                self._notify_status("warning", f"{interface}: missing 'value' field in JSON")
+                self._notify_status("warning", f"{interface}: missing 'value'/'y' field in JSON")
                 return None
             if not isinstance(value, (int, float)):
                 self._notify_status("warning", f"{interface}: 'value' must be numeric, got {type(value)}")
+                return None
+
+            # Validate X (optional)
+            if x_value is not None and not isinstance(x_value, (int, float)):
+                self._notify_status("warning", f"{interface}: 'x' must be numeric or omitted, got {type(x_value)}")
                 return None
 
             # Validate timestamp (optional)
@@ -601,6 +612,7 @@ class Backend(QObject):
                 return PlotDataPoint(
                     id=data_id,
                     value=float(value),
+                    x=float(x_value) if x_value is not None else None,
                     timestamp=float(timestamp) if timestamp is not None else None,
                     z_value=float(z_value) if z_value is not None else None
                 )

@@ -73,7 +73,9 @@ class TestReceiver(Receiver):
         # Calculate timestamp if enabled
         timestamp = time.time() - self._start_time if use_timestamp else None
 
-        if test_type == "Multi":
+        if test_type in ("XY", "XYCircle"):
+            self._emit_xy_circle()
+        elif test_type == "Multi":
             # Send multiple IDs with different patterns
             self._emit_multi_data(timestamp)
         elif test_type == "Ramp":
@@ -82,6 +84,18 @@ class TestReceiver(Receiver):
             self._emit_random(timestamp)
         else:  # "Sinus" or default
             self._emit_sinus(timestamp)
+
+    def _emit_xy_circle(self) -> None:
+        """Emit X/Y points forming a circle (useful for testing XY plots)."""
+        data_id = int(self._settings.get("id", 0))
+        radius = float(self._settings.get("radius", 10.0))
+        freq = float(self._settings.get("frequency", 0.2))  # Hz
+
+        x = radius * math.cos(2 * math.pi * freq * self._t)
+        y = radius * math.sin(2 * math.pi * freq * self._t)
+
+        payload = json.dumps({"id": data_id, "x": x, "y": y}).encode("utf-8")
+        self.new_data.emit(payload)
 
     def _emit_sinus(self, timestamp: Optional[float]) -> None:
         """Emit sine wave data."""
