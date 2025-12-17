@@ -47,6 +47,12 @@ class Backend(QObject):
 
     __backend_instance: Optional["Backend"] = None
 
+    _TEST_SIGNAL_TEMPLATES: List[Dict[str, Any]] = [
+        {"dataId": 0, "displayName": "Sine Wave", "color": "#ff6b6b"},
+        {"dataId": 1, "displayName": "Cosine Wave", "color": "#4ecdc4"},
+        {"dataId": 2, "displayName": "Sine Wave (2x)", "color": "#ffe66d"},
+    ]
+
     # Settings signals
     new_interface = Signal(str)
     new_settings = Signal("QJSValue")
@@ -447,8 +453,20 @@ class Backend(QObject):
         state = self._graph_state.get(unique_id)
         if state is None:
             # New data source discovered - auto-create line
+            conn_info = self.__connections.get(interface)
+            interface_type = conn_info.interface_type if conn_info else interface
+
+            # Default naming/colors
             color = self._color_from_id(data_point.id)
-            display_name = f"{interface} #{data_point.id}"
+            display_name = f"{interface_type} #{data_point.id}"
+
+            # Special case: Test interface provides stable, well-known signals
+            if conn_info and conn_info.interface_type == "Test":
+                for tpl in self._TEST_SIGNAL_TEMPLATES:
+                    if int(tpl.get("dataId", -1)) == int(data_point.id):
+                        display_name = str(tpl.get("displayName", display_name))
+                        color = str(tpl.get("color", color))
+                        break
 
             state = {
                 "id": data_point.id,
@@ -465,7 +483,9 @@ class Backend(QObject):
 
         # Announce graph to QML if not yet done
         if not state["announced"]:
-            self._queue_event("newGraph", unique_id, state["display_name"], state["color"], interface)
+            conn_info = self.__connections.get(interface)
+            interface_type = conn_info.interface_type if conn_info else interface
+            self._queue_event("newGraph", unique_id, state["display_name"], state["color"], interface_type)
             state["announced"] = True
 
         # Calculate X-axis value (normalized timestamp or auto-increment)
@@ -490,6 +510,17 @@ class Backend(QObject):
             # Legacy: direct send (slower)
             point = {"x": x_value, "y": data_point.value}
             self._queue_event("append_graph_point", unique_id, point)
+
+    @Slot(result="QVariant")
+    def get_test_signal_templates(self) -> List[Dict[str, Any]]:
+        """Return the well-known Test interface signal templates (2D).
+
+        Each item contains:
+          - dataId: int
+          - displayName: str
+          - color: str
+        """
+        return [tpl.copy() for tpl in self._TEST_SIGNAL_TEMPLATES]
 
     def _parse_data_point(self, interface: str, payload: bytes) -> PlotDataPoint | None:
         """Parse received payload into a PlotDataPoint.
@@ -1077,6 +1108,15 @@ class Backend(QObject):
         if conn_info.status != "disconnected":
             self._notify_status("error", f"Cannot delete active connection: {conn_info.display_name}")
             return False
+
+        # Clean up discovered signal state for this connection
+        prefix = f"{connection_id}_"
+        for unique_id in list(self._graph_state.keys()):
+            if unique_id.startswith(prefix):
+                self._graph_state.pop(unique_id, None)
+                self.__graph_list.pop(unique_id, None)
+                self._point_buffer.pop(unique_id, None)
+                self._last_emit_time.pop(unique_id, None)
 
         # Remove connection
         del self.__connections[connection_id]
