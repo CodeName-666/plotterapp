@@ -73,7 +73,9 @@ class TestReceiver(Receiver):
         # Calculate timestamp if enabled
         timestamp = time.time() - self._start_time if use_timestamp else None
 
-        if test_type in ("XY", "XYCircle"):
+        if test_type == "XYMulti":
+            self._emit_xy_multi()
+        elif test_type in ("XY", "XYCircle"):
             self._emit_xy_circle()
         elif test_type == "Multi":
             # Send multiple IDs with different patterns
@@ -96,6 +98,32 @@ class TestReceiver(Receiver):
 
         payload = json.dumps({"id": data_id, "x": x, "y": y}).encode("utf-8")
         self.new_data.emit(payload)
+
+    def _emit_xy_multi(self) -> None:
+        """Emit 3 independent X/Y signals (ids 0/1/2) for XY charts."""
+        radius = float(self._settings.get("radius", 10.0))
+
+        # ID 0: Circle
+        f0 = float(self._settings.get("frequency0", 0.20))
+        x0 = radius * math.cos(2 * math.pi * f0 * self._t)
+        y0 = radius * math.sin(2 * math.pi * f0 * self._t)
+        self.new_data.emit(json.dumps({"id": 0, "x": x0, "y": y0}).encode("utf-8"))
+
+        # ID 1: Lissajous-like curve
+        f1x = float(self._settings.get("frequency1x", 0.15))
+        f1y = float(self._settings.get("frequency1y", 0.25))
+        a1 = float(self._settings.get("amplitude1", radius * 0.8))
+        x1 = a1 * math.sin(2 * math.pi * f1x * self._t)
+        y1 = a1 * math.sin(2 * math.pi * f1y * self._t + math.pi / 2)
+        self.new_data.emit(json.dumps({"id": 1, "x": x1, "y": y1}).encode("utf-8"))
+
+        # ID 2: Spiral (clamped radius)
+        f2 = float(self._settings.get("frequency2", 0.35))
+        grow = float(self._settings.get("growth2", 1.0))
+        r2 = min(radius, (self._t * grow) % (radius + 0.0001))
+        x2 = r2 * math.cos(2 * math.pi * f2 * self._t)
+        y2 = r2 * math.sin(2 * math.pi * f2 * self._t)
+        self.new_data.emit(json.dumps({"id": 2, "x": x2, "y": y2}).encode("utf-8"))
 
     def _emit_sinus(self, timestamp: Optional[float]) -> None:
         """Emit sine wave data."""
