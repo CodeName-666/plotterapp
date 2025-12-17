@@ -137,6 +137,51 @@ void Plotter::send(uint8_t channelId, float value) {
     }
 }
 
+void Plotter::send3D(uint8_t channelId, float yValue, float zValue, uint32_t currentTimeMs) {
+    if (!stream) return;
+
+    int len;
+
+    if (useTimestamp) {
+        float timestamp = (currentTimeMs - startTimeMs) / 1000.0f;
+        len = snprintf(buffer, sizeof(buffer),
+                      "{\"id\":%d,\"value\":%.6f,\"z\":%.6f,\"timestamp\":%.6f}\n",
+                      channelId, yValue, zValue, timestamp);
+    } else {
+        len = snprintf(buffer, sizeof(buffer),
+                      "{\"id\":%d,\"value\":%.6f,\"z\":%.6f}\n",
+                      channelId, yValue, zValue);
+    }
+
+    if (len > 0 && len < (int)sizeof(buffer)) {
+        stream->write((const uint8_t*)buffer, len);
+    }
+}
+
+void Plotter::send3D(uint8_t channelId, float yValue, float zValue, float timestamp) {
+    if (!stream) return;
+
+    int len = snprintf(buffer, sizeof(buffer),
+                      "{\"id\":%d,\"value\":%.6f,\"z\":%.6f,\"timestamp\":%.6f}\n",
+                      channelId, yValue, zValue, timestamp);
+
+    if (len > 0 && len < (int)sizeof(buffer)) {
+        stream->write((const uint8_t*)buffer, len);
+    }
+}
+
+void Plotter::send3D(uint8_t channelId, float yValue, float zValue) {
+    if (!stream) return;
+
+    int len = snprintf(buffer, sizeof(buffer),
+                      "{\"id\":%d,\"value\":%.6f,\"z\":%.6f}\n",
+                      channelId, yValue, zValue);
+
+    if (len > 0 && len < (int)sizeof(buffer)) {
+        stream->write((const uint8_t*)buffer, len);
+    }
+}
+
 void Plotter::setTimestampEnabled(bool enable) {
     useTimestamp = enable;
 }

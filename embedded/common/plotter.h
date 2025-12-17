@@ -59,7 +59,7 @@ private:
     PlotterStream* stream;     ///< Output stream
     uint32_t startTimeMs;      ///< Start time in milliseconds
     bool useTimestamp;         ///< Whether to include timestamps
-    char buffer[64];           ///< Internal buffer for formatting
+    char buffer[80];           ///< Internal buffer for formatting (increased for 3D support)
     bool ownsStream;           ///< Whether we own the stream object
 
 #ifdef ARDUINO
@@ -191,6 +191,54 @@ public:
      * @endcode
      */
     void send(uint8_t channelId, float value);
+
+    /**
+     * @brief Send 3D data point with automatic timestamp
+     *
+     * For 3D charts (XYZ surface/scatter plots).
+     * Calculates timestamp automatically from current time and start time.
+     *
+     * @param channelId Channel ID (0-255)
+     * @param yValue Y-axis value (measurement value)
+     * @param zValue Z-axis value (depth/height)
+     * @param currentTimeMs Current time in milliseconds
+     *
+     * @code
+     * plotter.send3D(0, temperature, pressure, millis());
+     * @endcode
+     */
+    void send3D(uint8_t channelId, float yValue, float zValue, uint32_t currentTimeMs);
+
+    /**
+     * @brief Send 3D data point with explicit timestamp
+     *
+     * For 3D charts with custom timestamp values in seconds.
+     *
+     * @param channelId Channel ID (0-255)
+     * @param yValue Y-axis value (measurement value)
+     * @param zValue Z-axis value (depth/height)
+     * @param timestamp Explicit timestamp in seconds
+     *
+     * @code
+     * plotter.send3D(0, temperature, pressure, 1.234);
+     * @endcode
+     */
+    void send3D(uint8_t channelId, float yValue, float zValue, float timestamp);
+
+    /**
+     * @brief Send 3D data point without timestamp
+     *
+     * For 3D charts. PlotterApp will auto-generate timestamps.
+     *
+     * @param channelId Channel ID (0-255)
+     * @param yValue Y-axis value (measurement value)
+     * @param zValue Z-axis value (depth/height)
+     *
+     * @code
+     * plotter.send3D(0, temperature, pressure);
+     * @endcode
+     */
+    void send3D(uint8_t channelId, float yValue, float zValue);
 
     /**
      * @brief Enable or disable timestamps
