@@ -7,6 +7,7 @@ import json
 from os.path import abspath, dirname, join
 
 from PySide6.QtQml import QQmlDebuggingEnabler
+from PySide6.QtCore import QSettings, QCoreApplication
 
 from Plotter.plotter import Plotter
 from Backend.backend import Backend
@@ -49,6 +50,16 @@ def getTelnetConfig(json_config: dict):
 
 
 if __name__ == "__main__":
+
+    QCoreApplication.setOrganizationName("PlotterApp")
+    QCoreApplication.setOrganizationDomain("plotter.app")
+    QCoreApplication.setApplicationName("PlotterApp")
+
+    settings = QSettings()
+    controls_style = settings.value("ui/controlsStyle", "Fusion")
+    if not controls_style:
+        controls_style = "Fusion"
+    os.environ["QT_QUICK_CONTROLS_STYLE"] = controls_style
 
     qt_controls_conf = abspath(join(dirname(__file__), "../qml/qtquickcontrols2.conf"))
     if os.path.exists(qt_controls_conf):
