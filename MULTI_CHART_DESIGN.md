@@ -23,7 +23,7 @@ App.qml (Root)
     │   ├── LineSeries (Graph 1)
     │   ├── LineSeries (Graph 2)
     │   └── LineSeries (Graph N)
-    ├── ChartLinesList (Sidebar)
+    ├── ChartsManager (Sidebar)
     ├── ChartControls (Zoom/Pan)
     └── ChartLineModel (Datenmodell)
 ```
@@ -328,7 +328,7 @@ QtObject {
 
 #### 2.1 Context Menu für ChartLines
 
-**Erweiterung:** `ChartLinesList.qml`
+**Erweiterung:** `ChartsManager.qml`
 
 ```qml
 delegate: MouseArea {
@@ -381,7 +381,7 @@ delegate: MouseArea {
 #### 2.2 Drag & Drop zwischen Charts
 
 ```qml
-ChartLinesList {
+ChartsManager {
     // Drag source
     delegate: Item {
         Drag.active: dragArea.drag.active
@@ -481,7 +481,7 @@ qml/content/
 └── ChartWindow/
     ├── ChartWindow.qml                 # GEÄNDERT: chartId Property
     └── ChartLinesList/
-        └── ChartLinesList.qml          # GEÄNDERT: Context Menu
+        └── ChartsManager.qml           # GEÄNDERT: Context Menu
 
 qml/content/Models/
 └── ChartLineModel.qml                  # GEÄNDERT: Chart-Filter
@@ -503,7 +503,7 @@ qml/content/Models/
 
 ### Sprint 2: Line-Zuweisung UI (1 Woche)
 
-- [ ] 8. QML: Context Menu in `ChartLinesList`
+- [ ] 8. QML: Context Menu in `ChartsManager`
 - [ ] 9. QML: "Move to Chart" Funktion
 - [ ] 10. QML: "Move to new Chart" Funktion
 - [ ] 11. Test: Lines zwischen Charts verschieben

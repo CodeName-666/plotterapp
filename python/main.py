@@ -50,6 +50,12 @@ def getTelnetConfig(json_config: dict):
 
 if __name__ == "__main__":
 
+    qt_controls_conf = abspath(join(dirname(__file__), "../qml/qtquickcontrols2.conf"))
+    if os.path.exists(qt_controls_conf):
+        os.environ["QT_QUICK_CONTROLS_CONF"] = qt_controls_conf
+    else:
+        print(f"Warning: qtquickcontrols2.conf not found at {qt_controls_conf}", file=sys.stderr)
+
     QQmlDebuggingEnabler()
 
     json_config = getJsonConfigData('../config/config.json')
